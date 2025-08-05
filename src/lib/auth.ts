@@ -66,6 +66,11 @@ export const createAuth = (ctx: GenericCtx) =>
 			sendOnSignUp: true,
 			sendOnSignIn: false
 		},
+		session: {
+			// Convex plugin is bugged, it cannot retrieve the session if
+			// the session is being stored on the secondary storage.
+			storeSessionInDatabase: true,
+		},
 		plugins: [
 			convex(),
 			organization({
@@ -83,10 +88,11 @@ export const createAuth = (ctx: GenericCtx) =>
 							data: organization
 						}
 					}
-				}
+				},
+
 			}),
 			haveIBeenPwned(),
-			twoFactor()
+			twoFactor(),
 		],
 		rateLimit: {
 			enabled: true,

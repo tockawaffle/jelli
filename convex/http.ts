@@ -13,7 +13,14 @@ http.route({
 	method: "GET",
 	handler: httpAction(async (ctx, request) => {
 		const { searchParams } = new URL(request.url);
-		const storageId = searchParams.get("storageId")! as Id<"_storage">;
+		const storageId = searchParams.get("storageId") as Id<"_storage">;
+
+		if (!storageId) {
+			return new Response("No storage ID provided", {
+				status: 400,
+			});
+		}
+
 		const blob = await ctx.storage.get(storageId);
 		if (blob === null) {
 			return new Response("Image not found", {

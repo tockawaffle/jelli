@@ -1,10 +1,25 @@
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "convex/react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
@@ -13,20 +28,150 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { api } from "../../../convex/_generated/api";
 
-export default function CreateOrganizationDialog({ open, onClose, hasNoOrgs }: { open: boolean, onClose: () => void, hasNoOrgs: boolean }) {
+export default function CreateOrganizationDialog({
+	open,
+	onClose,
+	hasNoOrgs,
+}: {
+	open: boolean;
+	onClose: () => void;
+	hasNoOrgs: boolean;
+}) {
+	const [action, setAction] = useState<"create" | "join">("create");
+
 	return (
-		<Dialog open={open} onOpenChange={onClose}>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>Create Organization</DialogTitle>
-					<DialogDescription>
-						{hasNoOrgs ? "You don't have any organizations yet. Create a new organization to get started." : "Create a new organization to get started."}
-					</DialogDescription>
-				</DialogHeader>
-				<CreateOrganizationForm onClose={onClose} />
+		<Dialog open={open} onOpenChange={onClose} modal={true}>
+			<DialogContent showCloseButton={false} className="overflow-hidden p-0">
+				{/* Decorative gradient top bar */}
+				<div className="h-1 w-full bg-gradient-to-r from-primary/80 via-fuchsia-500/70 to-blue-500/70" />
+				<div className="p-6">
+					<DialogHeader>
+						<DialogTitle>
+							{action === "create" ? "Create Organization" : "Join Organization"}
+						</DialogTitle>
+						<DialogDescription>
+							{hasNoOrgs
+								? "You don't have any organizations yet. Create or join an organization to get started."
+								: action === "create"
+									? "Create a new organization to get started."
+									: "Join an existing organization using an invitation ID."}
+						</DialogDescription>
+					</DialogHeader>
+
+					<div className="mt-4">
+						<ToggleGroup
+							type="single"
+							defaultValue="create"
+							onValueChange={(value) => {
+								if (value) setAction(value as "create" | "join");
+							}}
+							className="grid grid-cols-2 gap-2"
+						>
+							<ToggleGroupItem value="create" className="data-[state=on]:bg-primary/10 data-[state=on]:text-primary">Create</ToggleGroupItem>
+							<ToggleGroupItem value="join" className="data-[state=on]:bg-primary/10 data-[state=on]:text-primary">Join</ToggleGroupItem>
+						</ToggleGroup>
+					</div>
+
+					<div className="relative mt-6">
+						<AnimatePresence mode="wait">
+							{action === "create" ? (
+								<motion.div
+									key="create"
+									initial={{ opacity: 0, y: 8 }}
+									animate={{ opacity: 1, y: 0 }}
+									exit={{ opacity: 0, y: -8 }}
+									transition={{ duration: 0.2, ease: "easeOut" }}
+								>
+									<CreateOrganizationForm onClose={onClose} />
+								</motion.div>
+							) : (
+								<motion.div
+									key="join"
+									initial={{ opacity: 0, y: 8 }}
+									animate={{ opacity: 1, y: 0 }}
+									exit={{ opacity: 0, y: -8 }}
+									transition={{ duration: 0.2, ease: "easeOut" }}
+								>
+									<JoinOrganizationForm onClose={onClose} />
+								</motion.div>
+							)}
+						</AnimatePresence>
+					</div>
+				</div>
 			</DialogContent>
 		</Dialog>
-	)
+	);
+}
+
+const joinOrganizationSchema = z.object({
+	invitationId: z.string().min(1, "Invitation ID is required"),
+});
+
+function JoinOrganizationForm({ onClose }: { onClose: () => void }) {
+	const form = useForm<z.infer<typeof joinOrganizationSchema>>({
+		resolver: zodResolver(joinOrganizationSchema),
+		defaultValues: {
+			invitationId: "",
+		},
+	});
+
+	const [isJoiningOrg, setIsJoiningOrg] = useState(false);
+
+	async function onSubmit(values: z.infer<typeof joinOrganizationSchema>) {
+		setIsJoiningOrg(true);
+		try {
+			await authClient.organization.acceptInvitation({
+				invitationId: values.invitationId,
+			});
+			toast.success("Successfully joined organization!");
+			onClose();
+		} catch (error) {
+			toast.error("Failed to join organization. Please check the invitation ID.");
+		} finally {
+			setIsJoiningOrg(false);
+		}
+	}
+
+	return (
+		<div className="space-y-4">
+			<motion.div
+				initial={{ opacity: 0, y: -6 }}
+				animate={{ opacity: 1, y: 0 }}
+				className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 dark:bg-yellow-900 dark:text-yellow-200 dark:border-yellow-600 rounded-md"
+				role="alert"
+			>
+				<p className="font-bold">Warning</p>
+				<p className="text-sm">
+					If you join an organization, you won&apos;t be able to create or join another one until
+					you&apos;re either kicked out of it or leave by your own volition.
+				</p>
+			</motion.div>
+			<Form {...form}>
+				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+					<FormField
+						control={form.control}
+						name="invitationId"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Invitation ID</FormLabel>
+								<FormControl>
+									<Input placeholder="Enter invitation ID" {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+					<Button type="submit" className="w-full" disabled={isJoiningOrg}>
+						{isJoiningOrg ? (
+							<Loader2 className="animate-spin" />
+						) : (
+							"Join Organization"
+						)}
+					</Button>
+				</form>
+			</Form>
+		</div>
+	);
 }
 
 const createOrganizationSchema = z.object({
@@ -58,16 +203,31 @@ function ImageUploader({ field }: { field: any }) {
 
 	return (
 		<div className="space-y-2">
-			<Input type="file" accept="image/*" onChange={handleFileChange} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100" />
+			<Input
+				type="file"
+				accept="image/*"
+				onChange={handleFileChange}
+				className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"
+			/>
 			<div className="relative flex items-center">
 				<div className="flex-grow border-t border-gray-300"></div>
 				<span className="flex-shrink mx-4 text-gray-400 text-xs">OR</span>
 				<div className="flex-grow border-t border-gray-300"></div>
 			</div>
-			<Input type="text" placeholder="Or enter an image URL" onChange={handleUrlChange} />
+			<Input
+				type="text"
+				placeholder="Or enter an image URL"
+				onChange={handleUrlChange}
+			/>
 			{imagePreview && (
 				<div className="mt-4">
-					<Image src={imagePreview} alt="Logo Preview" width={100} height={100} className="rounded-lg object-cover" />
+					<Image
+						src={imagePreview}
+						alt="Logo Preview"
+						width={100}
+						height={100}
+						className="rounded-lg object-cover"
+					/>
 				</div>
 			)}
 		</div>
@@ -141,55 +301,73 @@ function CreateOrganizationForm({ onClose }: { onClose: () => void }) {
 	}
 
 	return (
-		<Form {...form}>
-			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-				<FormField
-					control={form.control}
-					name="name"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Organization Name</FormLabel>
-							<FormControl>
-								<Input
-									placeholder="Acme Inc."
-									{...field}
-									onChange={handleNameChange}
-								/>
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-				<FormField
-					control={form.control}
-					name="slug"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Slug</FormLabel>
-							<FormControl>
-								<Input placeholder="acme-inc" {...field} />
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-				<FormField
-					control={form.control}
-					name="logo"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Logo</FormLabel>
-							<FormControl>
-								<ImageUploader field={field} />
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-				<Button type="submit" className="w-full" disabled={isCreatingOrg}>
-					{isCreatingOrg ? <Loader2 className="animate-spin" /> : "Create Organization"}
-				</Button>
-			</form>
-		</Form>
+		<div className="space-y-4">
+			<motion.div
+				initial={{ opacity: 0, y: -6 }}
+				animate={{ opacity: 1, y: 0 }}
+				className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 dark:bg-yellow-900 dark:text-yellow-200 dark:border-yellow-600 rounded-md"
+				role="alert"
+			>
+				<p className="font-bold">Warning</p>
+				<p className="text-sm">
+					If you create an organization, you won&apos;t be able to join another one
+					until you delete that org.
+				</p>
+			</motion.div>
+			<Form {...form}>
+				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+					<FormField
+						control={form.control}
+						name="name"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Organization Name</FormLabel>
+								<FormControl>
+									<Input
+										placeholder="Acme Inc."
+										{...field}
+										onChange={handleNameChange}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+					<FormField
+						control={form.control}
+						name="slug"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Slug</FormLabel>
+								<FormControl>
+									<Input placeholder="acme-inc" {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+					<FormField
+						control={form.control}
+						name="logo"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Logo</FormLabel>
+								<FormControl>
+									<ImageUploader field={field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+					<Button type="submit" className="w-full" disabled={isCreatingOrg}>
+						{isCreatingOrg ? (
+							<Loader2 className="animate-spin" />
+						) : (
+							"Create Organization"
+						)}
+					</Button>
+				</form>
+			</Form>
+		</div>
 	);
 }

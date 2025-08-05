@@ -91,7 +91,13 @@ export default function AuthPage() {
 						<SettingsDropdown />
 					</div>
 					<CardHeader className="flex flex-col items-center space-y-6 pt-8 text-center">
-						<div className="w-14 h-14 rounded-lg bg-muted/50"></div>
+						<Image
+							src="images/logos/jelli.svg"
+							alt="Logo"
+							width={96}
+							height={96}
+							className="rounded-lg"
+						/>
 						<CardTitle className="text-2xl font-semibold">
 							{view === "signIn" && "Sign In"}
 							{view === "signUp" && "Create an account"}
@@ -234,20 +240,25 @@ function SignInForm({
 							<FormItem>
 								<FormLabel className="text-xs font-semibold text-muted-foreground uppercase">Password</FormLabel>
 								<FormControl>
-									<Input
-										placeholder="Enter your password"
-										type={showPassword ? "text" : "password"}
-										className="h-11 text-base bg-background border-border/50"
-										icon={
-											showPassword ? (
+									<div className="relative">
+										<Input
+											placeholder="Enter your password"
+											type={showPassword ? "text" : "password"}
+											className="h-11 text-base bg-background border-border/50 pr-10"
+											{...field}
+										/>
+										<button
+											type="button"
+											onClick={() => setShowPassword(!showPassword)}
+											className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
+										>
+											{showPassword ? (
 												<EyeOff className="w-5 h-5" />
 											) : (
 												<Eye className="w-5 h-5" />
-											)
-										}
-										onIconClick={() => setShowPassword(!showPassword)}
-										{...field}
-									/>
+											)}
+										</button>
+									</div>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -447,20 +458,25 @@ function SignUpForm({
 							<FormItem>
 								<FormLabel className="text-xs font-semibold text-muted-foreground uppercase">Password</FormLabel>
 								<FormControl>
-									<Input
-										placeholder="Enter your password"
-										type={showPassword ? "text" : "password"}
-										className="h-11 text-base bg-background border-border/50"
-										icon={
-											showPassword ? (
+									<div className="relative">
+										<Input
+											placeholder={showPassword ? "Enter your password" : "********"}
+											type={showPassword ? "text" : "password"}
+											className="h-11 text-base bg-background border-border/50 pr-10"
+											{...field}
+										/>
+										<button
+											type="button"
+											onClick={() => setShowPassword(!showPassword)}
+											className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
+										>
+											{showPassword ? (
 												<EyeOff className="w-5 h-5" />
 											) : (
 												<Eye className="w-5 h-5" />
-											)
-										}
-										onIconClick={() => setShowPassword(!showPassword)}
-										{...field}
-									/>
+											)}
+										</button>
+									</div>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -474,22 +490,27 @@ function SignUpForm({
 							<FormItem>
 								<FormLabel className="text-xs font-semibold text-muted-foreground uppercase">Confirm Password</FormLabel>
 								<FormControl>
-									<Input
-										placeholder="Confirm your password"
-										type={showConfirmPassword ? "text" : "password"}
-										className="h-11 text-base bg-background border-border/50"
-										icon={
-											showConfirmPassword ? (
+									<div className="relative">
+										<Input
+											placeholder={showConfirmPassword ? "Confirm your password" : "********"}
+											type={showConfirmPassword ? "text" : "password"}
+											className="h-11 text-base bg-background border-border/50 pr-10"
+											{...field}
+										/>
+										<button
+											type="button"
+											onClick={() =>
+												setShowConfirmPassword(!showConfirmPassword)
+											}
+											className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
+										>
+											{showConfirmPassword ? (
 												<EyeOff className="w-5 h-5" />
 											) : (
 												<Eye className="w-5 h-5" />
-											)
-										}
-										onIconClick={() =>
-											setShowConfirmPassword(!showConfirmPassword)
-										}
-										{...field}
-									/>
+											)}
+										</button>
+									</div>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -624,6 +645,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import Image from "next/image";
 
 const verifyEmailSchema = z.object({
 	token: z.string().min(1, "Token is required"),

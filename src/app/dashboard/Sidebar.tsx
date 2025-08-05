@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger } from "@/components/ui/select";
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
 import { Session, User } from "better-auth";
 import { Invitation, Member, Organization } from "better-auth/plugins";
@@ -8,6 +8,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, BarChartIcon, BookIcon, CalendarIcon, Check, ClockIcon, HomeIcon, LogOutIcon, Plus, SettingsIcon, UsersIcon, Zap } from "lucide-react";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import Image from "next/image";
+import React from "react";
+import { SidebarActions } from "./page";
 
 type SidebarProps = {
 	userOrgs: Organization[] | null,
@@ -34,47 +36,55 @@ type SidebarProps = {
 		session: Session,
 	} | null,
 	setOpen: (open: boolean) => void,
-	selectedAction: SidebarActions,
-	setSelectedAction: (action: SidebarActions) => void,
+	selectedAction: string,
+	setSelectedAction: React.Dispatch<React.SetStateAction<SidebarActions>>,
 	router: AppRouterInstance,
+	children: React.ReactNode,
+	activeMember: Member | null,
 }
 
 
-export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpen, selectedAction, setSelectedAction, router }: SidebarProps) {
+export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpen, selectedAction, setSelectedAction, router, children, activeMember }: SidebarProps) {
 	const navigationItems = [
 		{
 			label: "Home",
 			id: "home",
+			necessaryRole: null,
 			icon: <HomeIcon className="w-4 h-4" />,
 			action: () => { }
 		},
 		{
 			label: "Time Tracking",
 			id: "time-tracking",
+			necessaryRole: null,
 			icon: <ClockIcon className="w-4 h-4" />,
 			action: () => { }
 		},
 		{
 			label: "Schedule",
 			id: "schedule",
+			necessaryRole: ["admin", "owner"],
 			icon: <CalendarIcon className="w-4 h-4" />,
 			action: () => { }
 		},
 		{
 			label: "Team",
 			id: "team",
+			necessaryRole: ["admin", "owner"],
 			icon: <UsersIcon className="w-4 h-4" />,
 			action: () => { }
 		},
 		{
 			label: "Reports",
 			id: "reports",
+			necessaryRole: null,
 			icon: <BarChartIcon className="w-4 h-4" />,
 			action: () => { }
 		},
 		{
 			label: "Quick Actions",
 			id: "quick-actions",
+			necessaryRole: null,
 			icon: <Zap className="w-4 h-4" />,
 			action: () => { }
 		}
@@ -105,6 +115,9 @@ export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpe
 		}
 	];
 
+	const logoUrl = currentOrg && currentOrg.logo ? `${process.env.NEXT_PUBLIC_CONVEX_SITE_URL}/getImage?storageId=${currentOrg.logo}` : "/placeholder.svg";
+	const orgName = currentOrg?.name;
+	const displayName = orgName ? (orgName.length > 16 ? `${orgName.slice(0, 16)}...` : orgName) : "Select Organization";
 
 	return (
 		<SidebarProvider className="border-none">
@@ -144,10 +157,10 @@ export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpe
 												whileHover={{ scale: 1.1 }}
 												transition={{ duration: 0.2 }}
 											>
-												<Image src={`${process.env.NEXT_PUBLIC_CONVEX_SITE_URL}/getImage?storageId=${userOrgs?.[0]?.logo}`} alt={userOrgs?.[0]?.name || ""} width={20} height={20} className="rounded-full" priority={false} />
+												<Image src={logoUrl} alt={orgName || "Organization"} width={20} height={20} className="rounded-full" priority={false} />
 											</motion.div>
 											<span className="flex flex-col items-start">
-												<span className="text-sm font-medium ">{userOrgs?.[0]?.name.slice(0, 16) + "..." || "Select Organization"}</span>
+												<span className="text-sm font-medium ">{displayName}</span>
 												<span className="text-xs text-muted-foreground">
 													{(() => {
 														const userRole = currentOrg?.members.find((member) => member.user.email === session?.user.email)?.role;
@@ -167,8 +180,8 @@ export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpe
 												animate={{ opacity: 1, x: 0 }}
 												transition={{ duration: 0.2, delay: index * 0.05 }}
 											>
-												<SelectItem className="flex items-center gap-4 p-3 hover:bg-muted/50" value={org.id}>
-													<Image className="rounded-full" src={`${process.env.NEXT_PUBLIC_CONVEX_SITE_URL}/getImage?storageId=${org.logo}`} alt={org.name} width={20} height={20} />
+												<SelectItem className="flex items-center gap-4 p-3 dark:hover:bg-accent/50" value={org.id}>
+													<Image className="rounded-full" src={logoUrl} alt={org.name} width={20} height={20} />
 													{org.name.slice(0, 16) + "..."} {currentOrg?.id === org.id ? <Check className="w-4 h-4 ml-auto" /> : null}
 												</SelectItem>
 											</motion.div>
@@ -221,7 +234,7 @@ export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpe
 											}
 										}}
 									>
-										{navigationItems.map((item, index) => (
+										{navigationItems.filter((item) => item.necessaryRole === null || item.necessaryRole?.includes(activeMember?.role!)).map((item, index) => (
 											<motion.div
 												key={item.label}
 												variants={{
@@ -326,6 +339,7 @@ export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpe
 					</SidebarContent>
 				</Sidebar>
 			</motion.div>
+			<SidebarInset>{children}</SidebarInset>
 		</SidebarProvider>
 	)
 }
