@@ -1,11 +1,12 @@
 import { convexAdapter } from "@convex-dev/better-auth";
 import { convex } from "@convex-dev/better-auth/plugins";
 import { betterAuth } from "better-auth";
-import { haveIBeenPwned, organization, twoFactor } from "better-auth/plugins";
+import { createAuthMiddleware, haveIBeenPwned, openAPI, organization, twoFactor } from "better-auth/plugins";
 import { fetchAction } from "convex/nextjs";
 import { api } from "../../convex/_generated/api";
 import { type GenericCtx } from "../../convex/_generated/server";
 import { betterAuthComponent } from "../../convex/auth";
+import { getFullOrganizationMiddleware } from "./helpers/middlewares";
 import redis from "./helpers/redis";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
@@ -89,10 +90,20 @@ export const createAuth = (ctx: GenericCtx) =>
 						}
 					}
 				},
-
+				async sendInvitationEmail(data) {
+					const inviteLink = `${siteUrl}/orgs/invite/${data.id}`
+					await fetchAction(api.emails.orgs.send, {
+						email: data.email,
+						invitedByUsername: data.inviter.user.name,
+						invitedByEmail: data.inviter.user.email,
+						orgName: data.organization.name,
+						inviteLink
+					})
+				},
 			}),
 			haveIBeenPwned(),
 			twoFactor(),
+			openAPI()
 		],
 		rateLimit: {
 			enabled: true,
@@ -104,4 +115,11 @@ export const createAuth = (ctx: GenericCtx) =>
 			level: "error",
 			console: true,
 		},
+		hooks: {
+			after: createAuthMiddleware(async (mdCtx) => {
+				if (mdCtx.path.includes("get-full-organization")) {
+					return await getFullOrganizationMiddleware(mdCtx)
+				}
+			})
+		}
 	});

@@ -1,27 +1,9 @@
 "use client";
 
-import { Member } from "better-auth/plugins/organization";
 import { LucideIcon } from "lucide-react";
 import StatCard, { StatCardSkeleton } from "./StatCard";
 
 type StatsListProps = {
-	currentOrg: {
-		id: string;
-		name: string;
-		createdAt: Date;
-		slug: string;
-		metadata?: any;
-		logo?: string | null | undefined;
-		members: (Member & {
-			user: {
-				id: string;
-				name: string;
-				email: string;
-				image: string | undefined;
-			};
-		})[];
-	};
-	activeMember: Member;
 	stats: {
 		id: string;
 		title: string;
@@ -32,7 +14,7 @@ type StatsListProps = {
 	}[];
 };
 
-export function StatsList({ currentOrg, activeMember, stats }: StatsListProps) {
+export function StatsList({ stats }: StatsListProps) {
 
 
 	if (!stats) {

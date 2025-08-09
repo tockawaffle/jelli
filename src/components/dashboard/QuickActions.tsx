@@ -32,15 +32,23 @@ export default function QuickActions() {
 				<CardTitle>Quick Actions</CardTitle>
 			</CardHeader>
 			<CardContent>
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+				<div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
 					{actions.map((action, index) => {
 						const Icon = action.icon;
 						return (
-							<Button key={index} variant="outline" className="h-24 flex flex-col items-center justify-center gap-2">
-								<Icon className="w-8 h-8 text-primary" />
-								<div className="text-center">
-									<p className="text-sm font-semibold">{action.label}</p>
-									<p className="text-xs text-muted-foreground">{action.description}</p>
+							<Button
+								key={index}
+								variant="outline"
+								size="lg"
+								aria-label={action.label}
+								className="group touch-manipulation min-h-[90px] sm:min-h-[110px] h-auto py-4 sm:py-5 flex flex-col items-center justify-center gap-2 rounded-lg"
+							>
+								<div className="flex items-center justify-center size-10 sm:size-11 rounded-md bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+									<Icon className="size-5 sm:size-6" />
+								</div>
+								<div className="text-center min-w-0">
+									<p className="text-xs sm:text-sm font-medium truncate">{action.label}</p>
+									<p className="text-[10px] sm:text-xs text-muted-foreground truncate">{action.description}</p>
 								</div>
 							</Button>
 						)

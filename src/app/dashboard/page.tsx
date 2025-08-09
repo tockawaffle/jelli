@@ -1,12 +1,13 @@
 "use client";
 
+import QuickActions from "@/components/dashboard/QuickActions";
 import { DashboardSkeleton } from "@/components/dashboard/skeleton";
 import MinimalHeader from "@/components/Header";
 import { authClient } from "@/lib/auth-client";
 import { useConvexAuth } from "convex/react";
-import { Loader2 } from "lucide-react";
+import { CalendarIcon, ClockIcon, HomeIcon, Loader2, UsersIcon, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import CreateOrganizationDialog from "./CreateOrgDialog";
 import HomeSection from "./Home";
 import DashboardSidebar from "./Sidebar";
@@ -15,37 +16,42 @@ export type SidebarActions = "home" | "time-tracking" | "schedule" | "team" | "r
 
 export default function DashboardPage() {
 	const { isLoading, isAuthenticated } = useConvexAuth();
+
 	const { data: userOrgs, isPending: isLoadingOrgs, refetch: refetchOrgs } = authClient.useListOrganizations();
 	const { data: currentOrg, isPending: isLoadingCurrentOrg, error: currentOrgError, refetch: refetchCurrentOrg } = authClient.useActiveOrganization();
 	const { data: session } = authClient.useSession();
 	const router = useRouter();
 	const [open, setOpen] = useState(false);
-	const [selectedAction, setSelectedAction] = useState<SidebarActions>("home");
+	const [selectedAction, setSelectedAction] = useState<SidebarActions>(() => {
+		if (typeof window === "undefined") return "home";
+		const stored = localStorage.getItem("dashboard-last-action");
+		return (stored as SidebarActions) || "home";
+	});
 	const { data: activeMember, isPending: isActiveMemberPending } = authClient.useActiveMember();
+	const hasSetDefaultOrg = useRef(false);
 
 	useEffect(() => {
-		const localSelectedAction = localStorage.getItem("dashboard-last-action");
-		if (localSelectedAction) {
-			setSelectedAction(localSelectedAction as SidebarActions);
+		if (hasSetDefaultOrg.current) return;
+		if (userOrgs && userOrgs.length > 0 && !currentOrg) {
+			hasSetDefaultOrg.current = true;
+			authClient.organization.setActive({
+				organizationId: userOrgs[0].id,
+			});
+			refetchCurrentOrg();
 		}
-	}, [setSelectedAction])
+	}, [currentOrg, userOrgs, refetchCurrentOrg]);
+
+	useEffect(() => {
+		if (typeof window !== "undefined") {
+			localStorage.setItem("dashboard-last-action", selectedAction);
+		}
+	}, [selectedAction]);
 
 	useEffect(() => {
 		if (!isLoading && (!isAuthenticated || !session)) {
-			router.push("/auth");
+			router.replace("/auth");
 		}
 	}, [isLoading, isAuthenticated, router, session]);
-
-	useEffect(() => {
-		if (userOrgs) {
-			if (userOrgs.length > 0 && !currentOrg) {
-				authClient.organization.setActive({
-					organizationId: userOrgs[0].id,
-				});
-				refetchCurrentOrg();
-			}
-		}
-	}, [currentOrg, userOrgs, refetchCurrentOrg])
 
 	// Don't render anything if we don't have a session (prevents null reference errors)
 	if (!session) {
@@ -94,7 +100,7 @@ export default function DashboardPage() {
 			case "reports":
 				return <div className="p-4">Reports Page</div>;
 			case "quick-actions":
-				return <div className="p-4">Quick Actions Page</div>;
+				return <QuickActions />;
 			default:
 				return null;
 		}
@@ -103,7 +109,7 @@ export default function DashboardPage() {
 	return (
 		<div className="flex flex-col h-screen w-screen bg-background">
 			<CreateOrganizationDialog open={open} onClose={() => { setOpen(false) }} hasNoOrgs={userOrgs?.length === 0} />
-			<MinimalHeader user={session?.user || null} organization={userOrgs?.[0] || null} />
+			<MinimalHeader user={session?.user || null} organization={currentOrg || userOrgs?.[0] || null} />
 			<div className="flex flex-1 overflow-hidden">
 				<DashboardSidebar
 					userOrgs={userOrgs}
@@ -115,9 +121,37 @@ export default function DashboardPage() {
 					router={router}
 					activeMember={activeMember}
 				>
-					{renderContent()}
+					<div className="pb-24 md:pb-0">{renderContent()}</div>
 				</DashboardSidebar>
 			</div>
+			{/* Mobile bottom navigation */}
+			<nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+				<div className="grid grid-cols-5 gap-1 px-2 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)]">
+					{[
+						{ id: "home", label: "Home", icon: HomeIcon, role: null },
+						{ id: "time-tracking", label: "Time", icon: ClockIcon, role: null },
+						{ id: "quick-actions", label: "Actions", icon: Zap, role: null },
+						{ id: "schedule", label: "Schedule", icon: CalendarIcon, role: ["admin", "owner"] as const },
+						{ id: "team", label: "Team", icon: UsersIcon, role: ["admin", "owner"] as const },
+					]
+						.filter((item) => !item.role || item.role.includes(activeMember?.role as any))
+						.map((item) => {
+							const Icon = item.icon;
+							const isActive = selectedAction === item.id;
+							return (
+								<button
+									key={item.id}
+									className={`flex flex-col items-center justify-center gap-1 py-1 rounded-md ${isActive ? "text-primary" : "text-muted-foreground"}`}
+									onClick={() => setSelectedAction(item.id as SidebarActions)}
+									aria-label={item.label}
+								>
+									<Icon className={`h-5 w-5 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+									<span className="text-[11px] leading-none">{item.label}</span>
+								</button>
+							);
+						})}
+				</div>
+			</nav>
 		</div>
 	)
 }

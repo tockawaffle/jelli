@@ -19,8 +19,8 @@ const trendIcons = {
 };
 
 const trendColors = {
-	up: "text-green-500",
-	down: "text-red-500",
+	up: "text-primary",
+	down: "text-destructive",
 	neutral: "text-muted-foreground",
 };
 

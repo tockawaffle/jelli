@@ -8,8 +8,11 @@
  * @module
  */
 
+import type * as attendance from "../attendance.js";
 import type * as auth from "../auth.js";
+import type * as emails_orgs from "../emails/orgs.js";
 import type * as emails_templates_email_verification from "../emails/templates/email_verification.js";
+import type * as emails_templates_org_invitation from "../emails/templates/org_invitation.js";
 import type * as emails_validator from "../emails/validator.js";
 import type * as emails_verification from "../emails/verification.js";
 import type * as files from "../files.js";
@@ -31,8 +34,11 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  attendance: typeof attendance;
   auth: typeof auth;
+  "emails/orgs": typeof emails_orgs;
   "emails/templates/email_verification": typeof emails_templates_email_verification;
+  "emails/templates/org_invitation": typeof emails_templates_org_invitation;
   "emails/validator": typeof emails_validator;
   "emails/verification": typeof emails_verification;
   files: typeof files;

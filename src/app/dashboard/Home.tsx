@@ -9,7 +9,7 @@ import { Invitation, Member } from "better-auth/plugins/organization";
 import { useQuery } from "convex/react";
 import dayjs from "dayjs";
 import { motion } from "framer-motion";
-import { BarChart, Calendar, Clock, LucideIcon, Users } from "lucide-react";
+import { BarChart, Calendar, Clock, LucideIcon, Moon, Sun, SunDim, Users } from "lucide-react";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { useMemo } from "react";
 import { api } from "../../../convex/_generated/api";
@@ -41,13 +41,13 @@ type HomeSectionProps = {
 	router: AppRouterInstance,
 }
 
-export default function HomeSection({ currentOrg, session, router, activeMember }: HomeSectionProps) {
+export default function HomeSection({ currentOrg, session, activeMember }: HomeSectionProps) {
 	if (!session) return null;
 	if (!activeMember || !currentOrg) {
 		return (
 			<Dialog open={true} modal={true}>
 				<DialogContent showCloseButton={false} className="overflow-hidden p-0">
-					<div className="h-1 w-full bg-gradient-to-r from-primary/80 via-fuchsia-500/70 to-blue-500/70" />
+					<div className="h-1 w-full bg-gradient-to-r from-primary/80 via-accent to-primary" />
 					<div className="p-6">
 						<DialogHeader>
 							<DialogTitle>Session out of sync</DialogTitle>
@@ -57,7 +57,7 @@ export default function HomeSection({ currentOrg, session, router, activeMember 
 						</DialogHeader>
 
 						<motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2, ease: "easeOut" }} className="mt-4 space-y-4">
-							<div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 dark:bg-yellow-900 dark:text-yellow-200 dark:border-yellow-600 rounded-md" role="alert">
+							<div className="bg-accent/30 border-l-4 border-accent text-foreground p-4 rounded-md" role="alert">
 								<p className="font-bold">Tip</p>
 								<p className="text-sm">Make sure pop-up blockers or aggressive extensions aren't interfering with org selection.</p>
 							</div>
@@ -76,26 +76,15 @@ export default function HomeSection({ currentOrg, session, router, activeMember 
 
 	const { user } = session;
 
-	const currentGreeting = useMemo(() => {
-		const currentHour = dayjs().hour();
-		if (currentHour < 12) {
-			return `Good morning, ${user?.name}`;
-		}
-		if (currentHour < 18) {
-			return `Good afternoon, ${user?.name}!`;
-		}
-		return `Good evening, ${user?.name}!`;
-	}, [user]);
+
 
 	const userRole = useMemo(() => {
 		return activeMember?.role;
 	}, [activeMember]);
 
-	const attendance = useQuery(api.orgs.get.getAllAttendance, {
+	const orgInfo = useQuery(api.orgs.get.getOrgMembersInfo, {
 		orgId: currentOrg.id,
-	});
-	const scheduledTimeOff = useQuery(api.orgs.get.getScheduledTimeOffAmount, {
-		orgId: currentOrg.id,
+		info: ["attendance", "scheduledTimeOff", "members", "orgSettings", "orgMetadata"]
 	});
 
 	const stats = useMemo((): {
@@ -106,40 +95,41 @@ export default function HomeSection({ currentOrg, session, router, activeMember 
 		icon: LucideIcon;
 		trend: "up" | "down" | "neutral";
 	}[] | null => {
-		console.debug("[HomeSection] stats function called: ", attendance, scheduledTimeOff);
-		if (!attendance || scheduledTimeOff === undefined) {
+		if (!orgInfo) {
 			return null;
 		}
 
 		const today = dayjs();
 		const yesterday = dayjs().subtract(1, "day");
 
-		const todayAttendance = attendance.filter((member) =>
+		const { attendance, scheduledTimeOff, members, orgSettings, orgMetadata } = orgInfo;
+
+		const todayAttendance = attendance?.filter((member) =>
 			dayjs(member.clock_in).isSame(today, "day")
 		);
-		const yesterdayAttendance = attendance.filter((member) =>
+		const yesterdayAttendance = attendance?.filter((member) =>
 			dayjs(member.clock_in).isSame(yesterday, "day")
 		);
 
-		const todayAttendanceCount = todayAttendance.length;
-		const yesterdayAttendanceCount = yesterdayAttendance.length;
+		const todayAttendanceCount = todayAttendance?.length ?? 0;
+		const yesterdayAttendanceCount = yesterdayAttendance?.length ?? 0;
 
 		const averageHoursToday =
-			todayAttendance.reduce((acc, member) => {
+			(todayAttendance ?? []).reduce((acc, member) => {
 				const clockIn = dayjs(member.clock_in);
 				const clockOut = dayjs(member.clocked_out);
 				return acc + clockOut.diff(clockIn, "hour", true);
-			}, 0) / todayAttendanceCount || 0;
+			}, 0) / (todayAttendanceCount ?? 0) || 0;
 
 		const attendanceDifference = todayAttendanceCount - yesterdayAttendanceCount;
 		const attendanceRate =
-			(todayAttendanceCount / currentOrg.members.length) * 100;
+			(todayAttendanceCount / (members?.page?.length ?? 0)) * 100;
 
 		return [
 			{
 				id: "team-members-active",
 				title: "Team Members Active",
-				value: `${todayAttendanceCount} / ${currentOrg.members.length}`,
+				value: `${todayAttendanceCount} / ${members?.page?.length ?? 0}`,
 				description: `${Math.abs(attendanceDifference)} ${attendanceDifference >= 0 ? "more" : "less"
 					} than yesterday`,
 				icon: Users,
@@ -175,29 +165,76 @@ export default function HomeSection({ currentOrg, session, router, activeMember 
 			{
 				id: "scheduled-today",
 				title: "Scheduled Today",
-				value: scheduledTimeOff?.toString() ?? "0",
-				description: `${scheduledTimeOff ?? 0} time-off requests`,
+				value: `${scheduledTimeOff?.length ?? 0} time-off requests`,
+				description: "",
 				icon: Calendar,
 				trend: "neutral" as const,
 			},
 		];
-	}, [attendance, scheduledTimeOff, currentOrg.members]);
+	}, [orgInfo]);
+
+	const currentGreeting = useMemo(() => {
+		// Greeting according to the general status of the team and the time of the day
+		// Let's consider the following:
+		// - If there's no attendance for today, the description should be something along the lines of "No activity yet, stay productive!"
+		// - If we have half of the team active, then the description should be more of a warning saying that we might not be on track
+		// - If we have more than 3/4 of the team active, then the description should be something along the lines of "Everything's going well, keep it up!"
+
+		const attendanceRate = (orgInfo?.attendance?.length ?? 0) / (orgInfo?.members?.page?.length ?? 0);
+		const description = attendanceRate < 0.5 ? "No activity yet, stay productive!" : "Everything's going well, keep it up!";
+
+		const currentHour = dayjs().hour();
+		if (currentHour < 12) {
+			return {
+				greeting: `Good morning, ${user?.name}`,
+				description,
+				icon: Sun,
+			};
+		}
+		if (currentHour < 18) {
+			return {
+				greeting: `Good afternoon, ${user?.name}!`,
+				description,
+				icon: SunDim,
+			};
+		}
+		return {
+			greeting: `Good evening, ${user?.name}!`,
+			description,
+			icon: Moon,
+		};
+	}, [user]);
 
 	return (
 		<div className="p-4 md:p-8">
-			<h1 className="text-2xl font-bold">{currentGreeting} 👋</h1>
-			<p className="text-muted-foreground">Here's what's happening with your team today. Everything is flowing smoothly.</p>
+			<h1 className="text-xl md:text-2xl font-bold">{currentGreeting.greeting} 👋</h1>
+			<p className="text-sm md:text-base text-muted-foreground">{currentGreeting.description}</p>
 
 			{
 				["admin", "owner"].includes(userRole!) && (
 					<>
-						<StatsList currentOrg={currentOrg} activeMember={activeMember} stats={stats ?? []} />
-						<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-6">
+						<StatsList stats={stats ?? []} />
+						<div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-6">
 							<div className="lg:col-span-2">
-								<RecentActivity />
+								<RecentActivity
+									orgInfo={orgInfo}
+									orgMembers={currentOrg.members.map(m => ({
+										userId: m.userId,
+										name: m.user?.name ?? null,
+										image: m.user?.image ?? undefined,
+									}))}
+								/>
 							</div>
 							<div>
-								<TeamStatus />
+								<TeamStatus
+									orgInfo={orgInfo}
+									orgMembers={currentOrg.members.map(m => ({
+										userId: m.userId,
+										name: m.user?.name ?? null,
+										role: m.role,
+										image: m.user?.image ?? undefined,
+									}))}
+								/>
 							</div>
 						</div>
 					</>

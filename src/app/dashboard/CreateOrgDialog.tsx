@@ -43,7 +43,7 @@ export default function CreateOrganizationDialog({
 		<Dialog open={open} onOpenChange={onClose} modal={true}>
 			<DialogContent showCloseButton={false} className="overflow-hidden p-0">
 				{/* Decorative gradient top bar */}
-				<div className="h-1 w-full bg-gradient-to-r from-primary/80 via-fuchsia-500/70 to-blue-500/70" />
+				<div className="h-1 w-full bg-gradient-to-r from-primary/80 via-accent to-primary" />
 				<div className="p-6">
 					<DialogHeader>
 						<DialogTitle>
@@ -137,7 +137,7 @@ function JoinOrganizationForm({ onClose }: { onClose: () => void }) {
 			<motion.div
 				initial={{ opacity: 0, y: -6 }}
 				animate={{ opacity: 1, y: 0 }}
-				className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 dark:bg-yellow-900 dark:text-yellow-200 dark:border-yellow-600 rounded-md"
+				className="bg-destructive/10 border-l-4 border-destructive text-destructive p-4 rounded-md"
 				role="alert"
 			>
 				<p className="font-bold">Warning</p>
@@ -207,12 +207,12 @@ function ImageUploader({ field }: { field: any }) {
 				type="file"
 				accept="image/*"
 				onChange={handleFileChange}
-				className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"
+				className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
 			/>
 			<div className="relative flex items-center">
-				<div className="flex-grow border-t border-gray-300"></div>
-				<span className="flex-shrink mx-4 text-gray-400 text-xs">OR</span>
-				<div className="flex-grow border-t border-gray-300"></div>
+				<div className="flex-grow border-t border-border"></div>
+				<span className="flex-shrink mx-4 text-muted-foreground text-xs">OR</span>
+				<div className="flex-grow border-t border-border"></div>
 			</div>
 			<Input
 				type="text"
@@ -305,7 +305,7 @@ function CreateOrganizationForm({ onClose }: { onClose: () => void }) {
 			<motion.div
 				initial={{ opacity: 0, y: -6 }}
 				animate={{ opacity: 1, y: 0 }}
-				className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 dark:bg-yellow-900 dark:text-yellow-200 dark:border-yellow-600 rounded-md"
+				className="bg-destructive/10 border-l-4 border-destructive text-destructive p-4 rounded-md"
 				role="alert"
 			>
 				<p className="font-bold">Warning</p>

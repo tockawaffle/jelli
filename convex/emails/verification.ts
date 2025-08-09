@@ -9,7 +9,7 @@ import { z } from "zod";
 import { components } from "../_generated/api";
 import { action } from "../_generated/server";
 import EmailVerificationTemplate from "./templates/email_verification";
-import validateEmailConfig, { changeEmailSchema } from "./validator";
+import { changeEmailSchema, validateEmailConfig } from "./validator";
 
 export const resend: Resend = new Resend(components.resend, {
 	testMode: false

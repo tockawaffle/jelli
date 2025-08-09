@@ -47,13 +47,13 @@ export default function MinimalHeader({ user, organization }: MinimalHeaderProps
 	}, [user])
 
 	return (
-		<header id="minimal-header" className="mx-auto z-50 w-full border-b border-foreground/40 bg-background h-16 flex items-center justify-between px-4">
+		<header id="minimal-header" className="mx-auto z-50 w-full border-b border-border bg-background h-16 flex items-center justify-between px-4">
 			{/* Logo - always available */}
-			<div className="flex items-center">
+			<div className="flex items-center min-w-0">
 				<Link href="/" className="flex items-center">
 					<Image src="/images/logos/jelli.svg" alt="Logo" width={54} height={54} />
 				</Link>
-				<span className="text-lg font-bold items-center">
+				<span className="text-lg font-bold items-center truncate">
 					Jelli <span className="text-sm font-normal text-muted-foreground">• {organization?.name?.split(" ")[0]}</span>
 				</span>
 			</div>
@@ -65,7 +65,7 @@ export default function MinimalHeader({ user, organization }: MinimalHeaderProps
 				</div>
 			</div>
 
-			<div className="flex items-center gap-4">
+			<div className="flex items-center gap-2 sm:gap-4">
 				{/* Search mobile */}
 				<Button variant="outline" size="icon" className="rounded-full hover:bg-primary/10 transition-colors duration-150 hover:text-primary md:hidden">
 					<SearchIcon className="size-4" />
@@ -122,23 +122,25 @@ export default function MinimalHeader({ user, organization }: MinimalHeaderProps
 							<CommandIcon className="size-4 ml-2" />
 						</DropdownMenuItem>
 						{/* Theme Selector */}
-						<DropdownMenuItem className="h-[40px] cursor-pointer text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-150 rounded-md flex flex-row items-center justify-between px-2">
+						<DropdownMenuItem className="h-[40px] cursor-pointer text-muted-foreground! transition-colors duration-150 rounded-md flex flex-row items-center justify-between px-2 hover:bg-transparent! hover:cursor-default">
 							<span>Theme</span>
 							<ToggleGroup
 								type="single"
 								value={theme}
-								className="flex flex-row items-center border border-primary/50 rounded-md h-6"
+								className="flex flex-row items-center border border-primary/50 rounded-md h-6 "
 								onValueChange={(value) => value && setTheme(value)}
 							>
 								<ToggleGroupItem
-									className={`h-full px-2 ${theme === "light" ? "bg-primary text-primary-foreground hover:bg-primary/90!" : "hover:bg-primary/20"}`}
+									className={`h-full px-2 ${theme === "light" ? "bg-primary text-primary-foreground hover:bg-primary/90!" : "hover:bg-primary/20 hover:cursor-pointer"}`}
 									value="light"
+									disabled={theme === "light"}
 								>
 									<SunIcon className="size-3" />
 								</ToggleGroupItem>
 								<ToggleGroupItem
-									className={`h-full px-2 ${theme === "dark" ? "bg-primary text-primary-foreground hover:bg-primary/90!" : "hover:bg-primary/20"}`}
+									className={`h-full px-2 ${theme === "dark" ? "bg-primary text-primary-foreground hover:bg-primary/90!" : "hover:bg-primary/20 hover:cursor-pointer"}`}
 									value="dark"
+									disabled={theme === "dark"}
 								>
 									<MoonIcon className="size-3" />
 								</ToggleGroupItem>
@@ -147,7 +149,7 @@ export default function MinimalHeader({ user, organization }: MinimalHeaderProps
 						<DropdownMenuSeparator />
 						<DropdownMenuItem
 							onClick={handleSignOut}
-							className="h-[40px] cursor-pointer text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-150 rounded-md flex flex-row items-center justify-between px-2"
+							className="h-[40px] cursor-pointer text-muted-foreground hover:text-primary bg-destructive/50 hover:bg-destructive/80! transition-colors duration-150 rounded-md flex flex-row items-center justify-between px-2"
 						>
 							Sign Out
 							<LogOutIcon className="size-4 ml-2" />

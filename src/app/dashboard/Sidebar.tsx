@@ -121,18 +121,29 @@ export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpe
 
 	return (
 		<SidebarProvider className="border-none">
+			{/* Desktop sidebar trigger */}
 			<motion.div
 				initial={{ x: -10, opacity: 0 }}
 				animate={{ x: 0, opacity: 1 }}
 				transition={{ duration: 0.2, ease: "easeOut" }}
+				className="hidden md:block"
 			>
 				<SidebarTrigger className="p-2">
-					<motion.div
-						whileHover={{ scale: 1.1, x: 2 }}
-						transition={{ duration: 0.2 }}
-					>
+					<motion.div whileHover={{ scale: 1.1, x: 2 }} transition={{ duration: 0.2 }}>
 						<ArrowRight className="size-12 text-muted-foreground" />
 					</motion.div>
+				</SidebarTrigger>
+			</motion.div>
+
+			{/* Mobile floating trigger to open the sheet */}
+			<motion.div
+				initial={{ y: -10, opacity: 0 }}
+				animate={{ y: 0, opacity: 1 }}
+				transition={{ duration: 0.2, ease: "easeOut" }}
+				className="md:hidden fixed top-[4.5rem] left-2 z-30"
+			>
+				<SidebarTrigger className="size-8 rounded-full border bg-background/80 backdrop-blur">
+					<ArrowRight className="size-4 text-muted-foreground" />
 				</SidebarTrigger>
 			</motion.div>
 
@@ -339,7 +350,7 @@ export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpe
 					</SidebarContent>
 				</Sidebar>
 			</motion.div>
-			<SidebarInset>{children}</SidebarInset>
+			<SidebarInset className="overflow-auto">{children}</SidebarInset>
 		</SidebarProvider>
 	)
 }

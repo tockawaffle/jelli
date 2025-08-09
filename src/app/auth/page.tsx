@@ -9,11 +9,15 @@ import { useConvexAuth } from "convex/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function AuthPage() {
+
+	const searchParams = useSearchParams();
+	const redirect = searchParams.get("redirect");
+
 	const { isAuthenticated, isLoading } = useConvexAuth();
 	const { theme } = useTheme();
 	const router = useRouter();
@@ -63,7 +67,11 @@ export default function AuthPage() {
 	useEffect(() => {
 		if (isLoading) return;
 		if (isAuthenticated) {
-			router.push("/dashboard");
+			if (redirect) {
+				router.push(redirect);
+			} else {
+				router.push("/dashboard");
+			}
 		}
 	}, [isAuthenticated, isLoading, router]);
 

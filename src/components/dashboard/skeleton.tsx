@@ -8,7 +8,7 @@ export function DashboardSkeleton() {
 		<div className="w-full h-full bg-background overflow-hidden">
 			<div className="flex h-full">
 				{/* Sidebar Skeleton */}
-				<div className="flex h-full w-56 flex-col border-r">
+				<div className="hidden md:flex h-full w-56 flex-col border-r">
 					<div className="flex flex-1 flex-col pt-4 pb-3 overflow-y-auto">
 						{/* Organization Switcher Skeleton */}
 						<div className="px-3 mb-5">
@@ -54,7 +54,7 @@ export function DashboardSkeleton() {
 				</div>
 
 				{/* Main Content Skeleton */}
-				<main className="flex-1 p-7">
+				<main className="flex-1 p-4 md:p-7 overflow-auto">
 					{/* Welcome Section Skeleton */}
 					<div className="mb-7">
 						<Skeleton className="h-7 w-72 mb-2" />
@@ -62,7 +62,7 @@ export function DashboardSkeleton() {
 					</div>
 
 					{/* Metrics Grid Skeleton */}
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-7">
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-7">
 						{Array.from({ length: 4 }).map((_, index) => (
 							<Card key={index} className="transition-all bg-card">
 								<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1.5">
