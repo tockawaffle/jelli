@@ -241,7 +241,7 @@ export default function HomeSection({ currentOrg, session, activeMember }: HomeS
 				)
 			}
 			<div className="mt-6">
-				<QuickActions />
+				<QuickActions userRole={userRole || ""} />
 			</div>
 		</div>
 	)

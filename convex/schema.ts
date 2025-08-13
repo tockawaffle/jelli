@@ -2,27 +2,7 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
-	users: defineTable({
-		/**
-		 * @type {object}
-		 * The organization that the user is a member of.
-		 * This is autofilled when the user creates an organization or joins one.
-		 * @property {string} org_id - The id of the organization.
-		 * @property {string} role - The role of the user in the organization.
-		 * @property {string} created_at - The date and time the user was added to the organization.
-		 * @property {string} updated_at - The date and time the user was last updated in the organization.
-		 */
-		org: v.optional(
-			v.object(
-				{
-					org_id: v.string(),
-					role: v.string(),
-					created_at: v.string(),
-					updated_at: v.string(),
-				}
-			)
-		)
-	}),
+	users: defineTable({}),
 	/**
 	 * This table is used to store the attendance of the users in the organization.
 	 * Example:

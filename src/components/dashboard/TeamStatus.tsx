@@ -71,7 +71,7 @@ export default function TeamStatus({ orgInfo, orgMembers = [] }: TeamStatusProps
 	});
 
 	return (
-		<Card>
+		<Card className="min-h-[180px] h-full">
 			<CardHeader>
 				<div className="flex flex-col gap-2">
 					<div className="flex items-center justify-between gap-3">

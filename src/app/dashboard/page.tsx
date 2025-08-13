@@ -8,6 +8,7 @@ import { useConvexAuth } from "convex/react";
 import { CalendarIcon, ClockIcon, HomeIcon, Loader2, UsersIcon, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { z } from "zod";
 import CreateOrganizationDialog from "./CreateOrgDialog";
 import HomeSection from "./Home";
 import DashboardSidebar from "./Sidebar";
@@ -25,7 +26,15 @@ export default function DashboardPage() {
 	const [selectedAction, setSelectedAction] = useState<SidebarActions>(() => {
 		if (typeof window === "undefined") return "home";
 		const stored = localStorage.getItem("dashboard-last-action");
-		return (stored as SidebarActions) || "home";
+		if (stored) {
+			const parsed = z.array(z.enum(["home", "time-tracking", "schedule", "team", "reports", "quick-actions"])).safeParse(stored);
+			if (parsed.success) {
+				const lastAction = parsed.data[0] as SidebarActions;
+				console.debug("[DashboardPage] Loaded last action from localStorage", lastAction);
+				return lastAction;
+			}
+		}
+		return "home";
 	});
 	const { data: activeMember, isPending: isActiveMemberPending } = authClient.useActiveMember();
 	const hasSetDefaultOrg = useRef(false);
@@ -43,7 +52,12 @@ export default function DashboardPage() {
 
 	useEffect(() => {
 		if (typeof window !== "undefined") {
-			localStorage.setItem("dashboard-last-action", selectedAction);
+			const parsed = z.array(z.enum(["home", "time-tracking", "schedule", "team", "reports", "quick-actions"])).safeParse(selectedAction);
+			if (parsed.success) {
+				const lastAction = parsed.data[0] as SidebarActions;
+				console.debug("[DashboardPage] Saved last action to localStorage", lastAction);
+				localStorage.setItem("dashboard-last-action", lastAction);
+			}
 		}
 	}, [selectedAction]);
 
@@ -100,7 +114,7 @@ export default function DashboardPage() {
 			case "reports":
 				return <div className="p-4">Reports Page</div>;
 			case "quick-actions":
-				return <QuickActions />;
+				return <QuickActions userRole={activeMember?.role || ""} />;
 			default:
 				return null;
 		}

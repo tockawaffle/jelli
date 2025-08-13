@@ -28,6 +28,10 @@ export async function getFullOrganizationMiddleware(mdCtx: MiddlewareContext<Mid
 		throw new APIError("UNAUTHORIZED", { message: "You are not authorized to access this resource", code: "401A" })
 	}
 
+	if (!session.session.activeOrganizationId) {
+		throw new APIError("BAD_REQUEST", { message: "You do not have an active organization, please set one.", code: "400A" })
+	}
+
 	const member = await fetchQuery(api.orgs.get.getMember, {
 		orgId: session.session.activeOrganizationId as string,
 		userId: session.user.id

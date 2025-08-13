@@ -51,44 +51,43 @@ export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpe
 			id: "home",
 			necessaryRole: null,
 			icon: <HomeIcon className="w-4 h-4" />,
-			action: () => { }
 		},
 		{
 			label: "Time Tracking",
 			id: "time-tracking",
 			necessaryRole: null,
 			icon: <ClockIcon className="w-4 h-4" />,
-			action: () => { }
 		},
 		{
 			label: "Schedule",
 			id: "schedule",
 			necessaryRole: ["admin", "owner"],
 			icon: <CalendarIcon className="w-4 h-4" />,
-			action: () => { }
 		},
 		{
 			label: "Team",
 			id: "team",
 			necessaryRole: ["admin", "owner"],
 			icon: <UsersIcon className="w-4 h-4" />,
-			action: () => { }
 		},
 		{
 			label: "Reports",
 			id: "reports",
 			necessaryRole: null,
 			icon: <BarChartIcon className="w-4 h-4" />,
-			action: () => { }
 		},
 		{
 			label: "Quick Actions",
 			id: "quick-actions",
 			necessaryRole: null,
 			icon: <Zap className="w-4 h-4" />,
-			action: () => { }
 		}
-	];
+	] as {
+		label: string;
+		id: SidebarActions;
+		necessaryRole: string[] | null;
+		icon: React.ReactNode;
+	}[];
 
 	const systemItems = [
 		{
@@ -261,7 +260,6 @@ export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpe
 													variant="ghost"
 													onClick={() => {
 														setSelectedAction(item.id as SidebarActions);
-														item.action();
 													}}
 												>
 													<motion.div

@@ -1,5 +1,6 @@
 "use client"
 
+import { Loader2 } from 'lucide-react';
 import type { ThemeProviderProps } from 'next-themes';
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { createContext, useContext, useEffect, useState } from 'react';
@@ -21,8 +22,10 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
 
 	if (!mounted) {
 		return (
-			<>children</>
-		);
+			<div className="flex h-screen w-screen items-center justify-center bg-background">
+				<Loader2 className="h-10 w-10 animate-spin text-primary" />
+			</div>
+		)
 	}
 
 	return (
