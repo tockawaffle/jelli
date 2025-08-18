@@ -139,7 +139,7 @@ export default function DashboardPage() {
 				</DashboardSidebar>
 			</div>
 			{/* Mobile bottom navigation */}
-			<nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+			<nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t bg-card/80 backdrop-blur supports-backdrop-filter:bg-card/60">
 				<div className="grid grid-cols-5 gap-1 px-2 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)]">
 					{[
 						{ id: "home", label: "Home", icon: HomeIcon, role: null },

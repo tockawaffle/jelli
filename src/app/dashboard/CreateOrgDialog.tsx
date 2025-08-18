@@ -54,7 +54,7 @@ export default function CreateOrganizationDialog({
 				className="overflow-hidden p-0 max-h-[90vh] flex flex-col"
 			>
 				{/* Decorative gradient top bar */}
-				<div className="h-1 w-full bg-gradient-to-r from-primary/80 via-accent to-primary flex-shrink-0" />
+				<div className="h-1 w-full bg-linear-to-r from-primary/80 via-accent to-primary shrink-0" />
 				<ScrollArea className="flex-1 overflow-y-auto">
 					<div className="p-6">
 						<DialogHeader>
@@ -265,9 +265,9 @@ function ImageUploader({ field }: { field: any }) {
 				className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
 			/>
 			<div className="relative flex items-center">
-				<div className="flex-grow border-t border-border"></div>
-				<span className="flex-shrink mx-4 text-muted-foreground text-xs">OR</span>
-				<div className="flex-grow border-t border-border"></div>
+				<div className="grow border-t border-border"></div>
+				<span className="shrink mx-4 text-muted-foreground text-xs">OR</span>
+				<div className="grow border-t border-border"></div>
 			</div>
 			<Input
 				type="text"

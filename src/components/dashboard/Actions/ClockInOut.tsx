@@ -255,7 +255,7 @@ export default function ClockInOutDialog({ open, onOpenChange, error, hasRegiste
 						</div>
 					)}
 				</div>
-				<DialogFooter className="sticky bottom-0 left-0 right-0 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+				<DialogFooter className="sticky bottom-0 left-0 right-0 bg-background/80 backdrop-blur supports-backdrop-filter:bg-background/60">
 					<Button variant="secondary" onClick={() => onOpenChange(false)}>Close</Button>
 					{method === "request" && (
 						<Button className="gap-2" disabled={locationStatus === "denied" || locationStatus === "error" || locationStatus === "idle"}>

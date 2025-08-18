@@ -112,7 +112,7 @@ export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpe
 		},
 		{
 			label: "Logout",
-			className: "hover:!bg-destructive/90 text-destructive",
+			className: "hover:bg-destructive/90! text-destructive",
 			icon: <LogOutIcon className="w-4 h-4" />,
 			action: () => {
 				authClient.signOut();
@@ -145,7 +145,7 @@ export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpe
 				initial={{ y: -10, opacity: 0 }}
 				animate={{ y: 0, opacity: 1 }}
 				transition={{ duration: 0.2, ease: "easeOut" }}
-				className="md:hidden fixed top-[4.5rem] left-2 z-30"
+				className="md:hidden fixed top-18 left-2 z-30"
 			>
 				<SidebarTrigger className="size-8 rounded-full border bg-background/80 backdrop-blur">
 					<ArrowRight className="size-4 text-muted-foreground" />

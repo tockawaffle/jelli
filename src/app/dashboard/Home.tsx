@@ -47,7 +47,7 @@ export default function HomeSection({ currentOrg, session, activeMember }: HomeS
 		return (
 			<Dialog open={true} modal={true}>
 				<DialogContent showCloseButton={false} className="overflow-hidden p-0">
-					<div className="h-1 w-full bg-gradient-to-r from-primary/80 via-accent to-primary" />
+					<div className="h-1 w-full bg-linear-to-r from-primary/80 via-accent to-primary" />
 					<div className="p-6">
 						<DialogHeader>
 							<DialogTitle>Session out of sync</DialogTitle>
