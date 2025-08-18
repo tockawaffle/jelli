@@ -114,7 +114,7 @@ export default function DashboardPage() {
 			case "reports":
 				return <div className="p-4">Reports Page</div>;
 			case "quick-actions":
-				return <QuickActions userRole={activeMember?.role || ""} />;
+				return <QuickActions userRole={activeMember?.role || ""} orgData={currentOrg as unknown as FullOrganization} />;
 			default:
 				return null;
 		}

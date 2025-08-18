@@ -5,7 +5,7 @@ import { authClient } from "@/lib/auth-client";
 import { Session, User } from "better-auth";
 import { Invitation, Member, Organization } from "better-auth/plugins";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, BarChartIcon, BookIcon, CalendarIcon, Check, ClockIcon, HomeIcon, LogOutIcon, Plus, SettingsIcon, UsersIcon, Zap } from "lucide-react";
+import { ArrowRight, BarChartIcon, BookIcon, Building2Icon, CalendarIcon, Check, ClockIcon, HomeIcon, LogOutIcon, Plus, SettingsIcon, UsersIcon, Zap } from "lucide-react";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import Image from "next/image";
 import React from "react";
@@ -81,6 +81,12 @@ export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpe
 			id: "quick-actions",
 			necessaryRole: null,
 			icon: <Zap className="w-4 h-4" />,
+		},
+		{
+			label: "Organization",
+			id: "organization",
+			necessaryRole: ["admin", "owner"],
+			icon: <Building2Icon className="w-4 h-4" />,
 		}
 	] as {
 		label: string;

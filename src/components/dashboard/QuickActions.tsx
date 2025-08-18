@@ -3,7 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { Calendar, Clock, FileText, Users } from "lucide-react";
 import { useState } from "react";
-import { ClockInOutDialog, GenerateReportDialog, ManageTeamSheet, RequestTimeOffDialog } from "./QuickActionModals";
+import ClockInOutDialog from "./Actions/ClockInOut";
+import GenerateReportDialog from "./Actions/GenerateReport";
+import ManageTeamSheet from "./Actions/ManageTeam";
+import RequestTimeOffDialog from "./Actions/RequesTimeOff";
 
 const actions = [
 	{
@@ -33,13 +36,13 @@ const actions = [
 	}
 ];
 
-export default function QuickActions({ userRole }: { userRole: string }) {
+export default function QuickActions({ userData, orgData }: { userData: { role: string, id: string }, orgData: FullOrganization }) {
 	const [clockModalOpen, setClockModalOpen] = useState(false);
 	const [timeOffOpen, setTimeOffOpen] = useState(false);
 	const [reportOpen, setReportOpen] = useState(false);
 	const [teamOpen, setTeamOpen] = useState(false);
 
-	const canManageTeam = ["admin", "owner"].includes(userRole);
+	const canManageTeam = ["admin", "owner"].includes(userData.role);
 	const canGenerateOrgReport = canManageTeam;
 
 	return (
@@ -51,7 +54,7 @@ export default function QuickActions({ userRole }: { userRole: string }) {
 				<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 					{actions.map((action, index) => {
 						const Icon = action.icon;
-						const isDisabled = action.roles.length > 0 && !action.roles.includes(userRole);
+						const isDisabled = action.roles.length > 0 && !action.roles.includes(userData.role);
 						return (
 							<Button
 								key={action.label}
@@ -98,10 +101,10 @@ export default function QuickActions({ userRole }: { userRole: string }) {
 					})}
 				</div>
 				{/* Modals / Sheets */}
-				<ClockInOutDialog open={clockModalOpen} onOpenChange={setClockModalOpen} />
-				<RequestTimeOffDialog open={timeOffOpen} onOpenChange={setTimeOffOpen} />
-				<GenerateReportDialog open={reportOpen} onOpenChange={setReportOpen} canGenerateOrgReport={canGenerateOrgReport} />
-				<ManageTeamSheet open={teamOpen} onOpenChange={setTeamOpen} />
+				<ClockInOutDialog open={clockModalOpen} onOpenChange={setClockModalOpen} orgData={orgData} />
+				<RequestTimeOffDialog open={timeOffOpen} onOpenChange={setTimeOffOpen} orgData={orgData} />
+				<GenerateReportDialog open={reportOpen} onOpenChange={setReportOpen} canGenerateOrgReport={canGenerateOrgReport} orgData={orgData} />
+				<ManageTeamSheet open={teamOpen} onOpenChange={setTeamOpen} orgData={orgData} currentUserId={userData.id} />
 			</CardContent>
 		</Card>
 	);

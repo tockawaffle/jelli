@@ -2,7 +2,13 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
-	users: defineTable({}),
+	users: defineTable({
+		email: v.string(),
+		phoneNumber: v.optional(v.number()),
+		lunchBreakStart: v.optional(v.string()), // This is going to be a time in the format of "HH:MM:SS" and will be stored as a string to be later parsed to a time.
+		lunchBreakDynamic: v.boolean(), // If this boolean is true, the user can bypass the lunch break start time, however, it cannot bypass the return time, meaning that if they start lunch break at 12:00:00, they should return at 13:00:00 + gracePeriod.
+		flexibleHours: v.boolean(), // If this boolean is true, the user can clock in and out at any time, otherwise, they must clock in and out at the configured hours.
+	}),
 	/**
 	 * This table is used to store the attendance of the users in the organization.
 	 * Example:
@@ -108,4 +114,17 @@ export default defineSchema({
 		created_at: v.string(),
 		updated_at: v.string(),
 	}).index("by_user_id", ["id"]).index("by_org_id", ["org_id"]),
+	invitations: defineTable({
+		id: v.string(),
+		email: v.string(),
+		inviterId: v.string(),
+		organizationId: v.string(),
+		status: v.string(),
+		expiresAt: v.number(),
+		metadata: v.optional(v.object({
+			lunchBreakStart: v.optional(v.string()),
+			lunchBreakDynamic: v.optional(v.boolean()),
+			flexibleHours: v.optional(v.boolean()),
+		})),
+	}).index("by_email", ["email"]).index("by_organization_id", ["organizationId"]),
 });

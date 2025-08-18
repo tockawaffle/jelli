@@ -241,7 +241,7 @@ export default function HomeSection({ currentOrg, session, activeMember }: HomeS
 				)
 			}
 			<div className="mt-6">
-				<QuickActions userRole={userRole || ""} />
+				<QuickActions userData={{ role: userRole || "", id: user.id }} orgData={currentOrg as unknown as FullOrganization} />
 			</div>
 		</div>
 	)

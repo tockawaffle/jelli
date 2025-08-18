@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
+import { betterAuthComponent } from "./auth";
 
 function getTodayDateString(): string {
 	const now = new Date();
@@ -174,6 +175,27 @@ export const clockOut = mutation({
 			updated_at_ms: nowMs,
 		});
 		return { ok: true } as const;
+	},
+});
+
+export const getTodayForCurrentUser = query({
+	args: {
+		orgId: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const authUser = await betterAuthComponent.getAuthUser(ctx);
+		if (!authUser) return null;
+
+		const today = getTodayDateString();
+		const rows = await ctx.db
+			.query("attendance")
+			.withIndex("by_user_id")
+			.filter((q: any) => q.eq(q.field("id"), authUser._id))
+			.collect();
+
+		const todays = rows.filter((r: any) => r.date === today && r.org_id === args.orgId);
+		if (todays.length === 0) return null;
+		return todays.sort((a: any, b: any) => (b.updated_at_ms ?? 0) - (a.updated_at_ms ?? 0))[0];
 	},
 });
 

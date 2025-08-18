@@ -1,3 +1,4 @@
+import { CreateOrganizationSchema } from "@/app/dashboard/CreateOrgDialog";
 import type { Redis } from "@upstash/redis";
 import type { Member } from "better-auth/plugins";
 
@@ -34,12 +35,12 @@ declare global {
 		slug: string
 		logo: string | null
 		createdAt: number
-		metadata?: any
+		metadata: string // Should be a JSON string
 		invitations: {
 			id: string
 			organizationId: string
 			email: string
-			role: 'owner' | 'member'
+			role: 'owner' | 'admin' | 'member'
 			status: 'pending' | 'accepted' | 'declined'
 			expiresAt: number
 			inviterId: string
@@ -48,7 +49,7 @@ declare global {
 			id: string
 			organizationId: string
 			userId: string
-			role: 'owner' | 'member'
+			role: 'owner' | 'admin' | 'member'
 			createdAt: number
 			user: {
 				id: string
@@ -59,6 +60,8 @@ declare global {
 		}[]
 		teams: any | null
 	}
+
+	type OrgMetadata = CreateOrganizationSchema["metadata"];
 
 	enum ScheduledTimeOffType {
 		VACATION = "vacation",
