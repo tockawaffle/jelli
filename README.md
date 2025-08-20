@@ -13,6 +13,8 @@
 
 > **Disclaimer: Project in Alpha Stage**
 > Jelli is currently in active development and should be considered alpha software. It is **not ready for production usage.** Features may be incomplete, and breaking changes or data loss may occur. Please use it for testing and feedback purposes only.
+>
+> ⚠️ This README currently DOES NOT represent the actual state of how the project should be used an is a rough draft for future implementations. ⚠️
 
 ## What is Jelli?
 
