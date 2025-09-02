@@ -54,6 +54,20 @@ export const getOrgMembersInfo = query({
 		const authUser = await betterAuthComponent.getAuthUser(ctx);
 		if (!authUser) throw new Error("Unauthorized");
 
+		// Need to use this because the Convex Adapter doesn't have:
+		// 1. A method to directly get members from the org and compare by using the userId provided by it's own function
+		// 2. A method to directly get the user id (from better-auth)
+		const userId = await ctx.runQuery(
+			betterAuthComponent.component.lib.findOne,
+			{
+				model: "user",
+				unique: true,
+				where: [
+					{ field: "userId", operator: "eq", value: authUser.userId }
+				]
+			}
+		)
+
 		const member = await ctx.runQuery(
 			betterAuthComponent.component.lib.findOne,
 			{
@@ -61,7 +75,7 @@ export const getOrgMembersInfo = query({
 				unique: true,
 				where: [
 					{ field: "organizationId", operator: "eq", value: args.orgId },
-					{ field: "userId", operator: "eq", value: authUser._id }
+					{ field: "userId", operator: "eq", value: userId._id }
 				]
 			}
 		);

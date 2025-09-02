@@ -1,7 +1,5 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import { Calendar, Clock, FileText, Users } from "lucide-react";
+import { Calendar, Clock, FileText, Users, Zap } from "lucide-react";
 import { useState } from "react";
 import ClockInOutDialog from "./Actions/ClockInOut";
 import GenerateReportDialog from "./Actions/GenerateReport";
@@ -46,25 +44,57 @@ export default function QuickActions({ userData, orgData }: { userData: { role: 
 	const canGenerateOrgReport = canManageTeam;
 
 	return (
-		<Card>
-			<CardHeader>
-				<CardTitle>Quick Actions</CardTitle>
-			</CardHeader>
-			<CardContent>
-				<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+		<motion.div
+			className="bg-card/50 border border-border/50 rounded-xl backdrop-blur-sm w-full relative z-0"
+			initial={{ opacity: 0, y: 20 }}
+			animate={{ opacity: 1, y: 0 }}
+			transition={{ duration: 0.6, delay: 0.1 }}
+		>
+			{/* Header */}
+			<motion.div
+				className="p-6 border-b border-border/50"
+				initial={{ opacity: 0, x: -20 }}
+				animate={{ opacity: 1, x: 0 }}
+				transition={{ duration: 0.6, delay: 0.2 }}
+			>
+				<div className="flex items-center gap-3">
+					<div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center ring-1 ring-primary/20">
+						<Zap className="h-5 w-5 text-primary" />
+					</div>
+					<div>
+						<h2 className="text-lg font-semibold text-foreground">Quick Actions</h2>
+						<p className="text-sm text-muted-foreground">Fast access to common tasks</p>
+					</div>
+				</div>
+			</motion.div>
+
+			{/* Actions Grid */}
+			<div className="p-6 isolate">
+				<motion.div
+					className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4"
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					transition={{ duration: 0.6, delay: 0.3 }}
+				>
 					{actions.map((action, index) => {
 						const Icon = action.icon;
 						const isDisabled = action.roles.length > 0 && !action.roles.includes(userData.role);
 						return (
-							<Button
+							<motion.button
 								key={action.label}
-								variant="outline"
-								size="lg"
-								aria-label={action.label}
-								asChild
-								className="group touch-manipulation min-h-[96px] sm:min-h-[112px] h-auto py-4 sm:py-5 px-4 flex flex-col items-center justify-center gap-2 rounded-xl transition-all shadow-xs hover:shadow-sm hover:bg-muted hover:text-foreground dark:hover:bg-input/50"
+								className={`group relative flex flex-col items-center justify-center gap-3 p-4 min-h-[120px] rounded-xl border transition-all duration-200 ${isDisabled
+									? "bg-muted/30 border-border/30 opacity-50 cursor-not-allowed"
+									: "bg-background/50 border-border/50 hover:bg-background hover:border-primary/30 hover:shadow-md hover:shadow-primary/5"
+									}`}
 								disabled={isDisabled}
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ duration: 0.4, delay: index * 0.1 + 0.4 }}
+								whileHover={isDisabled ? {} : { scale: 1.02, y: -2, zIndex: 10 }}
+								whileTap={isDisabled ? {} : { scale: 0.98 }}
+								style={{ zIndex: 1 }}
 								onClick={() => {
+									if (isDisabled) return;
 									switch (action.label) {
 										case "Clock In/Out":
 											setClockModalOpen(true);
@@ -81,31 +111,51 @@ export default function QuickActions({ userData, orgData }: { userData: { role: 
 									}
 								}}
 							>
-								<motion.button
-									initial={{ opacity: 0, y: 6 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{ duration: 0.2, ease: "easeOut", delay: index * 0.03 }}
-									whileHover={isDisabled ? undefined : { scale: 1.01, y: -2 }}
-									whileTap={isDisabled ? undefined : { scale: 0.99 }}
+								{/* Icon Container */}
+								<motion.div
+									className={`h-12 w-12 rounded-lg flex items-center justify-center transition-colors ${isDisabled
+										? "bg-muted text-muted-foreground/50"
+										: "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground"
+										}`}
+									whileHover={isDisabled ? {} : { rotate: 5 }}
+									transition={{ type: "spring", stiffness: 300 }}
 								>
-									<div className="flex items-center justify-center size-10 sm:size-11 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground ring-1 ring-primary/10 group-hover:ring-transparent transition-colors">
-										<Icon className="size-5 sm:size-6" aria-hidden="true" />
-									</div>
-									<div className="text-center min-w-0">
-										<p className="text-foreground text-xs sm:text-sm font-medium truncate">{action.label}</p>
-										<p className="text-[11px] sm:text-xs text-muted-foreground truncate">{action.description}</p>
-									</div>
-								</motion.button>
-							</Button>
+									<Icon className="h-6 w-6" />
+								</motion.div>
+
+								{/* Text Content */}
+								<div className="text-center space-y-1">
+									<p className={`text-sm font-medium ${isDisabled ? "text-muted-foreground/70" : "text-foreground"}`}>
+										{action.label}
+									</p>
+									<p className={`text-xs ${isDisabled ? "text-muted-foreground/50" : "text-muted-foreground"}`}>
+										{action.description}
+									</p>
+								</div>
+
+								{/* Disabled Overlay */}
+								{isDisabled && (
+									<div className="absolute inset-0 rounded-xl bg-background/20 backdrop-blur-[1px]" />
+								)}
+
+								{/* Hover Effect */}
+								{!isDisabled && (
+									<motion.div
+										className="absolute inset-0 rounded-xl bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"
+										layoutId={`quick-action-${action.label}`}
+									/>
+								)}
+							</motion.button>
 						)
 					})}
-				</div>
-				{/* Modals / Sheets */}
-				<ClockInOutDialog open={clockModalOpen} onOpenChange={setClockModalOpen} orgData={orgData} />
-				<RequestTimeOffDialog open={timeOffOpen} onOpenChange={setTimeOffOpen} orgData={orgData} />
-				<GenerateReportDialog open={reportOpen} onOpenChange={setReportOpen} canGenerateOrgReport={canGenerateOrgReport} orgData={orgData} />
-				<ManageTeamSheet open={teamOpen} onOpenChange={setTeamOpen} orgData={orgData} currentUserId={userData.id} />
-			</CardContent>
-		</Card>
+				</motion.div>
+			</div>
+
+			{/* Modals / Sheets */}
+			<ClockInOutDialog open={clockModalOpen} onOpenChange={setClockModalOpen} userRole={userData.role} />
+			<RequestTimeOffDialog open={timeOffOpen} onOpenChange={setTimeOffOpen} orgData={orgData} />
+			<GenerateReportDialog open={reportOpen} onOpenChange={setReportOpen} canGenerateOrgReport={canGenerateOrgReport} orgData={orgData} />
+			<ManageTeamSheet open={teamOpen} onOpenChange={setTeamOpen} orgData={orgData} currentUserId={userData.id} />
+		</motion.div>
 	);
 }

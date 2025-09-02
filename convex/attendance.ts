@@ -190,7 +190,7 @@ export const getTodayForCurrentUser = query({
 		const rows = await ctx.db
 			.query("attendance")
 			.withIndex("by_user_id")
-			.filter((q: any) => q.eq(q.field("id"), authUser._id))
+			.filter((q: any) => q.eq(q.field("id"), authUser.userId))
 			.collect();
 
 		const todays = rows.filter((r: any) => r.date === today && r.org_id === args.orgId);

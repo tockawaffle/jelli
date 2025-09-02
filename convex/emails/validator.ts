@@ -15,11 +15,21 @@ export const orgInvitationSchema = z.object({
 	inviteLink: z.string(),
 })
 
-export function validateEmailConfig(type: "change_email" | "email_verification", data: z.infer<typeof changeEmailSchema>): Result<z.infer<typeof changeEmailSchema>, EmailError> {
+export const resetPasswordSchema = z.object({
+	email: z.email(),
+	url: z.url(),
+	token: z.string(),
+})
+
+export const resetPasswordSuccessSchema = z.object({
+	email: z.email(),
+})
+
+export function validateEmailConfig(type: "change_email" | "email_verification" | "reset_password" | "reset_password_success", data: z.infer<typeof changeEmailSchema> | z.infer<typeof resetPasswordSchema> | z.infer<typeof resetPasswordSuccessSchema>): Result<z.infer<typeof changeEmailSchema> | z.infer<typeof resetPasswordSchema> | z.infer<typeof resetPasswordSuccessSchema>, EmailError> {
 	if (!process.env.RESEND_API_KEY) {
 		return err({
 			type: 'CONFIG_ERROR',
-			message: 'Resend API key is missing. Please check your environment variables.'
+			message: 'Resend API key or from email is missing. Please check your environment variables.'
 		});
 	}
 
@@ -42,6 +52,32 @@ export function validateEmailConfig(type: "change_email" | "email_verification",
 		case "email_verification": {
 			console.log("Validating email verification", data)
 			const result = changeEmailSchema.safeParse(data)
+
+			if (!result.success) {
+				return err({
+					type: 'INVALID_EMAIL',
+					message: 'Invalid email or OTP',
+					errors: result.error.issues
+				})
+			}
+
+			return ok(result.data);
+		}
+		case "reset_password": {
+			const result = resetPasswordSchema.safeParse(data)
+
+			if (!result.success) {
+				return err({
+					type: 'INVALID_EMAIL',
+					message: 'Invalid email or OTP',
+					errors: result.error.issues
+				})
+			}
+
+			return ok(result.data);
+		}
+		case "reset_password_success": {
+			const result = resetPasswordSuccessSchema.safeParse(data)
 
 			if (!result.success) {
 				return err({

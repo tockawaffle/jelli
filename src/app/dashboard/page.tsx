@@ -1,19 +1,22 @@
 "use client";
 
+import CreateOrganizationDialog from "@/components/dashboard/CreateOrgDialog";
+import HomeSection from "@/components/dashboard/Home";
 import QuickActions from "@/components/dashboard/QuickActions";
+import DashboardSidebar from "@/components/dashboard/Sidebar";
 import { DashboardSkeleton } from "@/components/dashboard/skeleton";
 import MinimalHeader from "@/components/Header";
+import SettingsPage from "@/components/settings/SettingsTabs";
 import { authClient } from "@/lib/auth-client";
 import { useConvexAuth } from "convex/react";
 import { CalendarIcon, ClockIcon, HomeIcon, Loader2, UsersIcon, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
-import CreateOrganizationDialog from "./CreateOrgDialog";
-import HomeSection from "./Home";
-import DashboardSidebar from "./Sidebar";
 
-export type SidebarActions = "home" | "time-tracking" | "schedule" | "team" | "reports" | "quick-actions";
+export type SidebarActions = "home" | "time-tracking" | "schedule" | "team" | "reports" | "quick-actions" | "settings";
+
+const sidebarSchema = z.enum(["home", "time-tracking", "schedule", "team", "reports", "quick-actions", "settings"]);
 
 export default function DashboardPage() {
 	const { isLoading, isAuthenticated } = useConvexAuth();
@@ -27,9 +30,9 @@ export default function DashboardPage() {
 		if (typeof window === "undefined") return "home";
 		const stored = localStorage.getItem("dashboard-last-action");
 		if (stored) {
-			const parsed = z.array(z.enum(["home", "time-tracking", "schedule", "team", "reports", "quick-actions"])).safeParse(stored);
+			const parsed = sidebarSchema.default("home").safeParse(stored);
 			if (parsed.success) {
-				const lastAction = parsed.data[0] as SidebarActions;
+				const lastAction = parsed.data as SidebarActions;
 				console.debug("[DashboardPage] Loaded last action from localStorage", lastAction);
 				return lastAction;
 			}
@@ -51,21 +54,45 @@ export default function DashboardPage() {
 	}, [currentOrg, userOrgs, refetchCurrentOrg]);
 
 	useEffect(() => {
-		if (typeof window !== "undefined") {
-			const parsed = z.array(z.enum(["home", "time-tracking", "schedule", "team", "reports", "quick-actions"])).safeParse(selectedAction);
-			if (parsed.success) {
-				const lastAction = parsed.data[0] as SidebarActions;
-				console.debug("[DashboardPage] Saved last action to localStorage", lastAction);
-				localStorage.setItem("dashboard-last-action", lastAction);
-			}
-		}
-	}, [selectedAction]);
-
-	useEffect(() => {
 		if (!isLoading && (!isAuthenticated || !session)) {
 			router.replace("/auth");
 		}
 	}, [isLoading, isAuthenticated, router, session]);
+
+	useEffect(() => {
+		if (typeof window !== "undefined") {
+			const parsed = sidebarSchema.default("home").safeParse(selectedAction);
+			if (parsed.success) {
+				const lastAction = parsed.data as SidebarActions;
+				console.log("Last action", lastAction);
+				console.debug("[DashboardPage] Saved last action to localStorage", lastAction);
+				localStorage.setItem("dashboard-last-action", lastAction);
+			} else {
+				console.error("[DashboardPage] Failed to parse last action", parsed.error);
+			}
+		}
+	}, [selectedAction]);
+
+
+	useEffect(() => {
+		window.addEventListener("storage-last-action", (e) => {
+			console.debug("[DashboardPage] Listening for last action", e);
+			const stored = localStorage.getItem("dashboard-last-action");
+			if (stored) {
+				setSelectedAction(stored as SidebarActions);
+			}
+		});
+
+		return () => {
+			window.removeEventListener("storage-last-action", (e) => {
+				console.log("[DashboardPage] Unlistening for last action", e);
+				const stored = localStorage.getItem("dashboard-last-action");
+				if (stored) {
+					setSelectedAction(stored as SidebarActions);
+				}
+			});
+		};
+	}, []);
 
 	// Don't render anything if we don't have a session (prevents null reference errors)
 	if (!session) {
@@ -114,7 +141,9 @@ export default function DashboardPage() {
 			case "reports":
 				return <div className="p-4">Reports Page</div>;
 			case "quick-actions":
-				return <QuickActions userRole={activeMember?.role || ""} orgData={currentOrg as unknown as FullOrganization} />;
+				return <QuickActions userData={{ role: activeMember?.role || "", id: activeMember?.userId || "" }} orgData={currentOrg as unknown as FullOrganization} />;
+			case "settings":
+				return <SettingsPage />;
 			default:
 				return null;
 		}
@@ -135,7 +164,7 @@ export default function DashboardPage() {
 					router={router}
 					activeMember={activeMember}
 				>
-					<div className="pb-24 md:pb-0">{renderContent()}</div>
+					<div className={selectedAction === "settings" ? "pb-24 md:pb-8" : "p-4 pb-24 md:pb-8"}>{renderContent()}</div>
 				</DashboardSidebar>
 			</div>
 			{/* Mobile bottom navigation */}

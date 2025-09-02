@@ -1,19 +1,30 @@
 import { convexAdapter } from "@convex-dev/better-auth";
 import { convex } from "@convex-dev/better-auth/plugins";
 import { betterAuth } from "better-auth";
-import { createAuthMiddleware, haveIBeenPwned, openAPI, organization, twoFactor } from "better-auth/plugins";
+import { apiKey, createAuthMiddleware, haveIBeenPwned, openAPI, organization, twoFactor } from "better-auth/plugins";
 import { fetchAction } from "convex/nextjs";
 import { api } from "../../convex/_generated/api";
 import { type GenericCtx } from "../../convex/_generated/server";
 import { betterAuthComponent } from "../../convex/auth";
 import { getFullOrganizationMiddleware } from "./helpers/middlewares";
-import redis from "./helpers/redis";
+import { auditLogsPlugin } from "./helpers/plugins/server/audit_logs";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
 export const createAuth = (ctx: GenericCtx) =>
 	betterAuth({
 		baseURL: siteUrl,
+		trustedOrigins: async (request) => {
+			const isDev = process.env.NODE_ENV === "development";
+			if (isDev) {
+				const { networkInterfaces } = await import("node:os");
+				// Get local machine ip address
+				const machineIp = Object.values(networkInterfaces()).flat().map(iface => iface?.address).filter(Boolean);
+				return [siteUrl, ...machineIp] as string[]; // Add all local ip addresses to the trusted origins (ALL IPS FROM ALL INTERFACES)
+			} else {
+				return [siteUrl] as string[];
+			}
+		},
 		advanced: {
 			ipAddress: {
 				ipAddressHeaders: ["x-forwarded-for", "x-real-ip", "x-client-ip"],
@@ -21,39 +32,54 @@ export const createAuth = (ctx: GenericCtx) =>
 			}
 		},
 		database: convexAdapter(ctx, betterAuthComponent),
-		secondaryStorage: {
-			get: async (key): Promise<string | null> => {
-				const value = await redis.get(key);
+		// This does not make a difference as of now. It also needs some fixes that will be done in the future
+		// once the better auth convex plugin fixes secondary storage support out of the box.
+		// secondaryStorage: {
+		// 	get: async (key): Promise<string | null> => {
+		// 		const value = await redis.get(key);
 
-				if (value === null) {
-					return null;
-				}
+		// 		if (value === null) {
+		// 			return null;
+		// 		}
 
-				if (typeof value === "object") {
-					const stringifiedValue = JSON.stringify(value);
-					return stringifiedValue;
-				}
+		// 		if (typeof value === "object") {
+		// 			const stringifiedValue = JSON.stringify(value);
+		// 			return stringifiedValue;
+		// 		}
 
-				if (typeof value === "string") {
-					return value;
-				}
+		// 		if (typeof value === "string") {
+		// 			return value;
+		// 		}
 
-				return null;
-			},
-			set: async (key, value, ttl) => {
-				if (ttl) {
-					await redis.set(key, value, { ex: ttl });
-				} else {
-					await redis.set(key, value);
-				}
-			},
-			delete: async (key) => {
-				await redis.del(key);
-			}
-		},
+		// 		return null;
+		// 	},
+		// 	set: async (key, value, ttl) => {
+		// 		if (ttl) {
+		// 			await redis.set(key, value, { ex: ttl });
+		// 		} else {
+		// 			await redis.set(key, value);
+		// 		}
+		// 	},
+		// 	delete: async (key) => {
+		// 		await redis.del(key);
+		// 	}
+		// },
 		emailAndPassword: {
 			enabled: true,
 			requireEmailVerification: true,
+			sendResetPassword: async ({ user, url, token, }, request) => {
+				console.log("sendResetPassword", user, url, token)
+				await fetchAction(api.emails.password.sendResetPasswordRequest, {
+					user: user as any,
+					url,
+					token,
+				})
+			},
+			onPasswordReset: async ({ user }) => {
+				await fetchAction(api.emails.password.sendResetPasswordSuccess, {
+					user: user as any
+				})
+			},
 		},
 		emailVerification: {
 			sendVerificationEmail: async ({ user, url, token }) => {
@@ -103,7 +129,24 @@ export const createAuth = (ctx: GenericCtx) =>
 			}),
 			haveIBeenPwned(),
 			twoFactor(),
-			openAPI()
+			openAPI(),
+			apiKey({
+				enableMetadata: true,
+				rateLimit: {
+					enabled: true,
+					maxRequests: 1000,
+					timeWindow: 1000 * 60 * 60 * 24,
+				}
+			}),
+			auditLogsPlugin(
+				{
+					mergeDefaultIgnoredActions: true,
+					ignoredActions: [
+						"organization-get-full-organization",
+						"convex-token"
+					]
+				}
+			)
 		],
 		rateLimit: {
 			enabled: true,

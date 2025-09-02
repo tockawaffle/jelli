@@ -1,4 +1,4 @@
-import { CreateOrganizationSchema } from "@/app/dashboard/CreateOrgDialog";
+import { CreateOrganizationSchema } from "@/components/dashboard/CreateOrgDialog";
 import type { Redis } from "@upstash/redis";
 import type { Member } from "better-auth/plugins";
 

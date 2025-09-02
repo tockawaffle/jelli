@@ -12,13 +12,16 @@ import {
 	DropdownMenuSubTrigger,
 	DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { Monitor, Moon, Settings, Sun, Video, VideoOff } from "lucide-react";
+import { Grid3x2, Monitor, Moon, Settings, Sun, Video, VideoOff } from "lucide-react";
 import { useTheme } from "next-themes";
+import Image from "next/image";
 import { useEffect, useState } from "react";
+
 
 export function SettingsDropdown() {
 	const { setTheme, theme } = useTheme();
 	const [animationsEnabled, setAnimationsEnabled] = useState(true);
+	const [selectedAnimation, setSelectedAnimation] = useState<"squares" | "jelli" | "none" | null>(null);
 	const [mounted, setMounted] = useState(false);
 
 	useEffect(() => {
@@ -27,13 +30,23 @@ export function SettingsDropdown() {
 		if (storedAnimations !== null) {
 			setAnimationsEnabled(JSON.parse(storedAnimations));
 		}
+		const storedAnimation = localStorage.getItem("selectedAnimation");
+		if (storedAnimation !== null) {
+			setSelectedAnimation(storedAnimation as "squares" | "jelli" | "none");
+		}
 	}, []);
 
 	const toggleAnimations = () => {
 		const newValue = !animationsEnabled;
 		setAnimationsEnabled(newValue);
 		localStorage.setItem("animationsEnabled", JSON.stringify(newValue));
-		window.dispatchEvent(new Event("storage"));
+		window.dispatchEvent(new Event("storage-animation-state"));
+	};
+
+	const handleAnimationChange = (animation: "squares" | "jelli" | "none") => {
+		setSelectedAnimation(animation);
+		localStorage.setItem("selectedAnimation", animation);
+		window.dispatchEvent(new Event("storage-animation-which"));
 	};
 
 	if (!mounted) {
@@ -78,6 +91,32 @@ export function SettingsDropdown() {
 					{animationsEnabled ? <Video className="mr-2 size-4" /> : <VideoOff className="mr-2 size-4" />}
 					<span>{animationsEnabled ? "Disable" : "Enable"} Animations</span>
 				</DropdownMenuItem>
+				<DropdownMenuSub>
+					<DropdownMenuSubTrigger className="disabled:opacity-50 disabled:cursor-not-allowed" disabled={!animationsEnabled}>
+						{selectedAnimation === "squares" ? (
+							<Grid3x2 className="mr-2 size-4" />
+						) : selectedAnimation === "jelli" ? (
+							<Image priority={false} loading="lazy" src="images/logos/jelli.svg" alt="Jelli" className="mr-2 size-4" width={16} height={16} />
+						) : (
+							<VideoOff className={`mr-2 size-4 ${animationsEnabled ? "text-foreground" : "text-muted-foreground"}`} />
+						)}
+						<span className={animationsEnabled ? "" : "text-muted-foreground"}>Animations</span>
+					</DropdownMenuSubTrigger>
+					<DropdownMenuSubContent>
+						<DropdownMenuItem onClick={() => handleAnimationChange("squares")}>
+							<Grid3x2 className="mr-2 size-4" />
+							<span>Squares</span>
+						</DropdownMenuItem>
+						<DropdownMenuItem onClick={() => handleAnimationChange("jelli")}>
+							<Image priority={false} loading="lazy" src="images/logos/jelli.svg" alt="Jelli" className="mr-2 size-4" width={16} height={16} />
+							<span>Jelli</span>
+						</DropdownMenuItem>
+						<DropdownMenuItem onClick={() => handleAnimationChange("none")}>
+							<VideoOff className="mr-2 size-4" />
+							<span>None</span>
+						</DropdownMenuItem>
+					</DropdownMenuSubContent>
+				</DropdownMenuSub>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);

@@ -99,6 +99,16 @@ export default defineSchema({
 		early_out: v.boolean(),
 		/** Epoch ms for sorting by most recent change */
 		updated_at_ms: v.number(),
+		/** The operation ids if user clocked in/out using NFC or QR code. This is used to track the operations if using NFC or QR code. This will match what is stored in the local app of the registered device. Prevents tampering with the attendance records. */
+		operation: v.optional(
+			v.array(
+				v.object({
+					id: v.string(),
+					type: v.union(v.literal("nfc"), v.literal("qr")),
+					created_at: v.string(),
+				})
+			)
+		),
 	})
 		.index("by_user_id", ["id"])
 		.index("by_org_id", ["org_id"])

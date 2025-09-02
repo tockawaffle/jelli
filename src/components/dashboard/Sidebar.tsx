@@ -9,7 +9,7 @@ import { ArrowRight, BarChartIcon, BookIcon, Building2Icon, CalendarIcon, Check,
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import Image from "next/image";
 import React from "react";
-import { SidebarActions } from "./page";
+import { SidebarActions } from "../../app/dashboard/page";
 
 type SidebarProps = {
 	userOrgs: Organization[] | null,
@@ -87,6 +87,12 @@ export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpe
 			id: "organization",
 			necessaryRole: ["admin", "owner"],
 			icon: <Building2Icon className="w-4 h-4" />,
+		},
+		{
+			label: "Settings",
+			id: "settings",
+			necessaryRole: null,
+			icon: <SettingsIcon className="w-4 h-4" />,
 		}
 	] as {
 		label: string;
@@ -96,13 +102,6 @@ export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpe
 	}[];
 
 	const systemItems = [
-		{
-			label: "Settings",
-			icon: <SettingsIcon className="w-4 h-4" />,
-			action: () => {
-				router.push("/settings");
-			}
-		},
 		{
 			label: "Documentation",
 			icon: <BookIcon className="w-4 h-4" />,
@@ -126,19 +125,6 @@ export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpe
 
 	return (
 		<SidebarProvider className="border-none">
-			{/* Desktop sidebar trigger */}
-			<motion.div
-				initial={{ x: -10, opacity: 0 }}
-				animate={{ x: 0, opacity: 1 }}
-				transition={{ duration: 0.2, ease: "easeOut" }}
-				className="hidden md:block"
-			>
-				<SidebarTrigger className="p-2">
-					<motion.div whileHover={{ scale: 1.1, x: 2 }} transition={{ duration: 0.2 }}>
-						<ArrowRight className="size-12 text-muted-foreground" />
-					</motion.div>
-				</SidebarTrigger>
-			</motion.div>
 
 			{/* Mobile floating trigger to open the sheet */}
 			<motion.div
