@@ -1,5 +1,6 @@
 import { convex } from "@convex-dev/better-auth/plugins";
 import { betterAuth } from "better-auth";
+import { localization as errorLocalization } from "better-auth-localization";
 import { apiKey, createAuthMiddleware, deviceAuthorization, haveIBeenPwned, lastLoginMethod, openAPI, organization, twoFactor } from "better-auth/plugins";
 import { fetchAction } from "convex/nextjs";
 import { api } from "../../convex/_generated/api";
@@ -19,6 +20,7 @@ export const createAuth = (ctx: GenericCtx) =>
 				const { networkInterfaces } = await import("node:os");
 				// Get local machine ip address
 				const machineIp = Object.values(networkInterfaces()).flat().map(iface => iface?.address).filter(Boolean);
+				console.info("[BetterAuth - Internal] Trusted origins:", [siteUrl, ...machineIp])
 				return [siteUrl, ...machineIp] as string[]; // Add all local ip addresses to the trusted origins (ALL IPS FROM ALL INTERFACES)
 			} else {
 				return [siteUrl] as string[];
@@ -31,38 +33,6 @@ export const createAuth = (ctx: GenericCtx) =>
 			}
 		},
 		database: authComponent.adapter(ctx),
-		// This does not make a difference as of now. It also needs some fixes that will be done in the future
-		// once the better auth convex plugin fixes secondary storage support out of the box.
-		// secondaryStorage: {
-		// 	get: async (key): Promise<string | null> => {
-		// 		const value = await redis.get(key);
-
-		// 		if (value === null) {
-		// 			return null;
-		// 		}
-
-		// 		if (typeof value === "object") {
-		// 			const stringifiedValue = JSON.stringify(value);
-		// 			return stringifiedValue;
-		// 		}
-
-		// 		if (typeof value === "string") {
-		// 			return value;
-		// 		}
-
-		// 		return null;
-		// 	},
-		// 	set: async (key, value, ttl) => {
-		// 		if (ttl) {
-		// 			await redis.set(key, value, { ex: ttl });
-		// 		} else {
-		// 			await redis.set(key, value);
-		// 		}
-		// 	},
-		// 	delete: async (key) => {
-		// 		await redis.del(key);
-		// 	}
-		// },
 		emailAndPassword: {
 			enabled: true,
 			requireEmailVerification: true,
@@ -150,7 +120,11 @@ export const createAuth = (ctx: GenericCtx) =>
 						"convex-token"
 					]
 				}
-			)
+			),
+			errorLocalization({
+				defaultLocale: "pt-BR",
+				fallbackLocale: "default",
+			})
 		],
 		rateLimit: {
 			enabled: true,
