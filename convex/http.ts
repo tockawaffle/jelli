@@ -2,11 +2,11 @@ import { httpRouter } from "convex/server";
 import { createAuth } from '../src/lib/auth';
 import { Id } from "./_generated/dataModel";
 import { httpAction } from "./_generated/server";
-import { betterAuthComponent } from './auth';
+import { authComponent } from './auth';
 
 const http = httpRouter()
 
-betterAuthComponent.registerRoutes(http, createAuth)
+authComponent.registerRoutes(http, createAuth)
 
 http.route({
 	path: "/getImage",

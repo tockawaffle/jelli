@@ -2,16 +2,15 @@ import { type Member } from "better-auth/plugins";
 import { v } from "convex/values";
 import { Doc } from "../_generated/dataModel";
 import { query } from "../_generated/server";
-import { betterAuthComponent } from "../auth";
+import { authComponent } from "../auth";
 
 export const getMember = query({
 	args: { orgId: v.string(), userId: v.string() },
 	async handler(ctx, { orgId, userId }) {
 		const member = await ctx.runQuery(
-			betterAuthComponent.component.lib.findOne,
+			authComponent.component.adapter.findOne,
 			{
 				model: "member",
-				unique: true,
 				where: [
 					{ field: "organizationId", operator: "eq", value: orgId },
 					{ field: "userId", operator: "eq", value: userId }
@@ -51,36 +50,38 @@ export const getOrgMembersInfo = query({
 	},
 	handler: async (ctx, args): Promise<OrgInfo> => {
 
-		const authUser = await betterAuthComponent.getAuthUser(ctx);
+		const authUser = await authComponent.getAuthUser(ctx);
 		if (!authUser) throw new Error("Unauthorized");
 
 		// Need to use this because the Convex Adapter doesn't have:
 		// 1. A method to directly get members from the org and compare by using the userId provided by it's own function
 		// 2. A method to directly get the user id (from better-auth)
 		const userId = await ctx.runQuery(
-			betterAuthComponent.component.lib.findOne,
+			authComponent.component.adapter.findOne,
 			{
 				model: "user",
-				unique: true,
 				where: [
-					{ field: "userId", operator: "eq", value: authUser.userId }
+					{ field: "userId", operator: "eq", value: authUser.userId as string }
 				]
 			}
 		)
 
+		if (!userId) throw new Error("Unauthorized");
+
 		const member = await ctx.runQuery(
-			betterAuthComponent.component.lib.findOne,
+			authComponent.component.adapter.findOne,
 			{
 				model: "member",
-				unique: true,
 				where: [
 					{ field: "organizationId", operator: "eq", value: args.orgId },
-					{ field: "userId", operator: "eq", value: userId._id }
+					{ field: "userId", operator: "eq", value: userId._id as string }
 				]
 			}
 		);
 
+		console.log(member);
 		if (!member) throw new Error("Unauthorized");
+		if (typeof member.role !== "string") throw new Error("Unauthorized");
 
 		const role = member.role.toLowerCase();
 		const limit = Math.max(1, Math.min(args.limit ?? 50, 200));
@@ -132,7 +133,7 @@ export const getOrgMembersInfo = query({
 						["owner", "admin", "manager"].includes(role)
 					) {
 						promises.members = ctx.runQuery(
-							betterAuthComponent.component.lib.findMany,
+							authComponent.component.adapter.findMany,
 							{
 								model: "member",
 								where: [
@@ -142,7 +143,6 @@ export const getOrgMembersInfo = query({
 										value: args.orgId
 									}
 								],
-								select: ["id", "userId", "organizationId", "role"],
 								limit: limit,
 								offset: args.offset,
 								paginationOpts: {
@@ -184,7 +184,7 @@ export const getScheduledTimeOffAmount = query({
 		orgId: v.optional(v.string()),
 	},
 	handler: async (ctx, args) => {
-		const identity = await ctx.auth.getUserIdentity();
+		const identity = await authComponent.getAuthUser(ctx);
 		if (!identity) return null;
 
 		const scheduledTimeOff = await ctx.db.query("scheduled_time_off").withIndex("by_org_id").filter((q) => q.eq(q.field("org_id"), args.orgId)).collect();

@@ -74,22 +74,42 @@ const parseActionFromPath = (path: string): string | undefined => {
 	return segments.slice(-2).join("-");
 };
 
-async function storeLog(ctx: any, userId: string, action: string, severity: UnauthHandler["severity"]) {
-	const ipAddress = ctx.headers?.get("x-forwarded-for");
-	const userAgent = ctx.headers?.get("user-agent");
+async function storeLog(ctx: any, userId: string, type: string, action: string, severity: UnauthHandler["severity"]) {
+	const ipAddress = () => {
+		return ctx.headers?.get("x-forwarded-for") ||
+			ctx.headers?.get("x-real-ip") ||
+			ctx.headers?.get("x-client-ip") ||
+			ctx.headers?.get("cf-connecting-ip") ||
+			"unknown";
+	}
+	const userAgent = ctx.headers?.get("user-agent") || "unknown";
 	await ctx.context.adapter.create({
 		model: "auditLogs",
 		data: {
 			userId,
 			action,
 			timestamp: new Date().toISOString(),
-			ipAddress,
+			ipAddress: ipAddress(),
 			userAgent,
 			severity,
-			type: "authentication"
+			type
 		}
 	}).catch((e: any) => console.error(`[Audit Logs] Error creating audit log: ${e}`));
 }
+
+const getSeverity = (action: string, options: AuditLogsOptions): UnauthHandler["severity"] => {
+	// Check custom severity first
+	if (options.customSeverityMap?.[action]) {
+		return options.customSeverityMap[action];
+	}
+
+	// Check default severity if merging is enabled
+	if (options.mergeDefaultSeverityMap !== false && DEFAULT_SEVERITY_MAP[action]) {
+		return DEFAULT_SEVERITY_MAP[action];
+	}
+
+	return "error"; // fallback
+};
 
 // default ignored actions for audit logs
 const DEFAULT_IGNORED_ACTIONS = [
@@ -118,33 +138,46 @@ const DEFAULT_SEVERITY_MAP: Record<string, UnauthHandler["severity"]> = {
 	"upload-profile": "info"
 };
 
+const DEFAULT_TYPE_MAP: Record<string, string> = {
+	"sign-in": "authentication",
+	"sign-out": "authentication",
+	"change-email": "authentication",
+	"update-user": "authentication",
+	"data-export": "authorization",
+	"api-key": "api",
+	"send-verification-otp": "authentication",
+	"verify-email": "authentication",
+	"revoke-session": "authentication",
+	"upload-profile": "authentication",
+	"unknown": "unknown"
+};
+
 /**
  * Audit Logs Plugin
  * 
- * This plugin is used to audit the actions that are performed by the users.
  * It is used to track the actions that are performed by the users and to track the user's activity.
  * Only the user can view their own audit logs.
  *
- * Note that this is really intensive for the database since it creates an audit log for every valid request and also does a lot of queries (to check if the user exists, etc),
- * so be aware of that.
+ * Note that this is really intensive for the database since it creates an audit log for every valid request and also does a lot of queries (to check if the user exists, etc), so be aware of that.
  *
  * I also did not test this throughly, so there might be some bugs. Use with caution and at your own risk.
  *
  * This has a lot of comments because... I'm bored and I like to yap.
  *
  * I tested it with the following setup:
- * - Better Auth v1.2.7
- * - Node v22.14.0
- * - PostgreSQL
+ * - Better Auth v1.3.7
+ * - Node v22.15.0
+ * - Convex Adapter v0.7.17 (with patches applied)
  * - React v19.1.0
- * - Next.js v15.3.0
+ * - Next.js v15.4.3
  * 
  * And with the following providers:
+ * - E-mail
  * - Twitch
  * - E-mail OTP
  *
  * Anything else should work, but I did not test it and do not have any plans to do so.
- * Most likely there are better ways to do this, but this works for me.
+ * Most likely there are better ways to do this, but this works for me and is easy to maintain.
  */
 export const auditLogsPlugin = (options: AuditLogsOptions = {}) =>
 (
@@ -194,7 +227,7 @@ export const auditLogsPlugin = (options: AuditLogsOptions = {}) =>
 								const parsed = z.enum(["info", "warning", "error", "severe"]).safeParse(value);
 								if (parsed.error) {
 									console.warn(`[Audit Logs] Invalid severity value on output: ${value}. Defaulting to "error".`);
-									return "error"; // Defaults to error if the value is not a valid severity.
+									return "error";
 								}
 
 								return parsed.data;
@@ -277,9 +310,8 @@ export const auditLogsPlugin = (options: AuditLogsOptions = {}) =>
 							if (!action) return;
 							else if (ignoredActions.includes(action)) return;
 
-							// Prioritize custom severity map over default severity map
-							const severity = options.customSeverityMap?.[action] || options.mergeDefaultSeverityMap ? DEFAULT_SEVERITY_MAP[action] || "error" : "error";
-							await storeLog(ctx, user.id, action, severity);
+							const severity = getSeverity(action, options);
+							await storeLog(ctx, user.id, DEFAULT_TYPE_MAP[action], action, severity);
 
 						} catch (error) {
 							console.error(`[Audit Logs] Error creating audit log: ${error}`)
@@ -304,6 +336,8 @@ export const auditLogsPlugin = (options: AuditLogsOptions = {}) =>
 
 							// TODO: Make a default actions list to ensure that this doesn't keep spamming the logs.
 
+							const severity = getSeverity(action, options);
+
 							const descriptor = unauthHandlers.find((h) => h.test(action));
 							if (!descriptor) {
 								console.warn(`[Audit Logs] No descriptor found for action: ${action}`);
@@ -319,7 +353,7 @@ export const auditLogsPlugin = (options: AuditLogsOptions = {}) =>
 								? descriptor.formatAction(action, ctx)
 								: action;
 
-							await storeLog(ctx, userId, finalAction, descriptor.severity);
+							await storeLog(ctx, userId, DEFAULT_TYPE_MAP[action], finalAction, severity);
 						} catch (error) {
 							console.error(`[Audit Logs] Error creating audit log: ${error}`)
 							// Nothing we can do here, returning an error will break the request which is not what we want.
@@ -353,9 +387,6 @@ export const auditLogsPlugin = (options: AuditLogsOptions = {}) =>
 															timestamp: { type: "string" },
 															ipAddress: { type: "string" },
 															userAgent: { type: "string" },
-															// I don't really get how OpenAPI handles enums, so I'll leave it as is for now.
-															// Update: Why does it render the first enum as the default value?
-															// Update 2: Expanding the "Show Child Attributes" actually show all enums available. But why does it have a default value?
 															severity: { type: "string", enum: ["info", "warning", "error", "severe"] },
 															type: { type: "string", enum: ["authentication", "authorization", "api", "unknown"] }
 														}
@@ -396,8 +427,7 @@ export const auditLogsPlugin = (options: AuditLogsOptions = {}) =>
 				const session = await getSessionFromCtx(ctx);
 				if (!session) throw new APIError("UNAUTHORIZED", { message: "Unauthorized" });
 
-				// Access validated query parameters directly from ctx.query
-				// TypeScript should infer the type from the Zod schema above.
+				// Access validated query parameters directly from ctx.query.
 				const { limit, offset, sort, actionId, type, severity } = ctx.query;
 
 				const whereStatements: Where[] = [
@@ -409,27 +439,29 @@ export const auditLogsPlugin = (options: AuditLogsOptions = {}) =>
 				]
 
 				if (actionId) {
+					// When filtering by specific action, type and severity are deterministic
 					whereStatements.push({
 						operator: "eq",
 						field: "action",
 						value: actionId
 					})
-				}
+				} else {
+					// Only use type/severity filters when not filtering by specific action
+					if (type) {
+						whereStatements.push({
+							operator: "eq",
+							field: "type",
+							value: type
+						})
+					}
 
-				if (type) {
-					whereStatements.push({
-						operator: "eq",
-						field: "type",
-						value: type
-					})
-				}
-
-				if (severity) {
-					whereStatements.push({
-						operator: "eq",
-						field: "severity",
-						value: severity
-					})
+					if (severity) {
+						whereStatements.push({
+							operator: "eq",
+							field: "severity",
+							value: severity
+						})
+					}
 				}
 
 				const [auditLogs, totalCount] = await Promise.all([

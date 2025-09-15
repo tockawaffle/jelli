@@ -1,11 +1,10 @@
-import { convexAdapter } from "@convex-dev/better-auth";
 import { convex } from "@convex-dev/better-auth/plugins";
 import { betterAuth } from "better-auth";
-import { apiKey, createAuthMiddleware, haveIBeenPwned, openAPI, organization, twoFactor } from "better-auth/plugins";
+import { apiKey, createAuthMiddleware, deviceAuthorization, haveIBeenPwned, lastLoginMethod, openAPI, organization, twoFactor } from "better-auth/plugins";
 import { fetchAction } from "convex/nextjs";
 import { api } from "../../convex/_generated/api";
 import { type GenericCtx } from "../../convex/_generated/server";
-import { betterAuthComponent } from "../../convex/auth";
+import { authComponent } from "../../convex/auth";
 import { getFullOrganizationMiddleware } from "./helpers/middlewares";
 import { auditLogsPlugin } from "./helpers/plugins/server/audit_logs";
 
@@ -31,7 +30,7 @@ export const createAuth = (ctx: GenericCtx) =>
 				disableIpTracking: false
 			}
 		},
-		database: convexAdapter(ctx, betterAuthComponent),
+		database: authComponent.adapter(ctx),
 		// This does not make a difference as of now. It also needs some fixes that will be done in the future
 		// once the better auth convex plugin fixes secondary storage support out of the box.
 		// secondaryStorage: {
@@ -137,6 +136,11 @@ export const createAuth = (ctx: GenericCtx) =>
 					maxRequests: 1000,
 					timeWindow: 1000 * 60 * 60 * 24,
 				}
+			}),
+			lastLoginMethod(),
+			deviceAuthorization({
+				expiresIn: "1h",
+				interval: "5s"
 			}),
 			auditLogsPlugin(
 				{

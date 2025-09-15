@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { betterAuthComponent } from "./auth";
+import { authComponent } from "./auth";
 
 function getTodayDateString(): string {
 	const now = new Date();
@@ -183,7 +183,7 @@ export const getTodayForCurrentUser = query({
 		orgId: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const authUser = await betterAuthComponent.getAuthUser(ctx);
+		const authUser = await authComponent.getAuthUser(ctx);
 		if (!authUser) return null;
 
 		const today = getTodayDateString();
