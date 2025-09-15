@@ -216,7 +216,7 @@ export default function HomeSection({ currentOrg, session, activeMember }: HomeS
 		>
 			{/* Hero Header Section */}
 			<motion.div
-				className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5 border-b border-border/50"
+				className="relative overflow-hidden bg-linear-to-br from-primary/5 via-background to-accent/5 border-b border-border/50"
 				initial={{ opacity: 0, y: -20 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.6, ease: "easeOut" }}
