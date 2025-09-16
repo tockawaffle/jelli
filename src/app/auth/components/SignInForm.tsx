@@ -16,16 +16,17 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { VerifyEmailModal } from "./Modals";
 
 export default function SignInForm({
 	setView,
+	redirectTo,
+	onEmailNotVerified,
 }: {
 	setView: (view: "signIn" | "signUp" | "forgotPassword") => void;
+	redirectTo?: string;
+	onEmailNotVerified: (email: string) => void;
 }) {
 	const router = useRouter();
-	const [isVerifyEmailModalOpen, setVerifyEmailModalOpen] = useState(false);
-	const [emailToVerify, setEmailToVerify] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
 	const formSchema = z.object({
 		email: z.email("Please enter a valid email"),
@@ -48,6 +49,7 @@ export default function SignInForm({
 			authClient.signIn.email({
 				email,
 				password,
+				callbackURL: redirectTo,
 			}, {
 				onSuccess: () => {
 					console.debug(`[SignInForm] login successful for ${email}`);
@@ -61,12 +63,11 @@ export default function SignInForm({
 					console.debug(`[SignInForm] login failed for ${email}: ${JSON.stringify(error)}`);
 					form.setError("root", { message: error.error.message });
 					if (error.error.code === "EMAIL_NOT_VERIFIED") {
-						setEmailToVerify(email);
 						toast.error("Please verify your email before logging in", {
 							action: {
 								label: "Verify email",
 								onClick: () => {
-									setVerifyEmailModalOpen(true);
+									onEmailNotVerified(email);
 								},
 							},
 						});
@@ -83,11 +84,6 @@ export default function SignInForm({
 
 	return (
 		<>
-			<VerifyEmailModal
-				isOpen={isVerifyEmailModalOpen}
-				setIsOpen={setVerifyEmailModalOpen}
-				email={emailToVerify}
-			/>
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 					<FormField

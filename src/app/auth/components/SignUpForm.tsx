@@ -8,7 +8,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { VerifyEmailModal } from "./Modals";
 
 const signUpFormSchema = z.object({
 	email: z.email("Please enter a valid email"),
@@ -21,11 +20,13 @@ const signUpFormSchema = z.object({
 
 export default function SignUpForm({
 	setView,
+	redirectTo,
+	onSuccess,
 }: {
 	setView: (view: "signIn" | "signUp" | "forgotPassword") => void;
+	redirectTo?: string;
+	onSuccess: (email: string) => void;
 }) {
-	const [isVerifyEmailModalOpen, setVerifyEmailModalOpen] = useState(false);
-	const [emailToVerify, setEmailToVerify] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -38,7 +39,7 @@ export default function SignUpForm({
 		},
 	});
 
-	async function onSubmit(values: z.infer<typeof signUpFormSchema>) {
+	function onSubmit(values: z.infer<typeof signUpFormSchema>) {
 		console.debug(`[SignUpForm] submitting registration for ${values.email}`);
 		const { email, password, confirmPassword } = values;
 
@@ -52,15 +53,15 @@ export default function SignUpForm({
 				email,
 				password,
 				name: email.split("@")[0],
+				callbackURL: redirectTo,
 			}, {
 				onSuccess: () => {
 					console.debug(`[SignUpForm] registration successful for ${email}`);
 					toast.success("Registration successful, please check your email for the verification link!");
-					setEmailToVerify(email);
-					setVerifyEmailModalOpen(true);
+					onSuccess(email);
 					resolve();
 				},
-				onError: (error) => {
+				onError: (error: any) => {
 					console.debug(`[SignUpForm] registration failed for ${email}: ${JSON.stringify(error)}`);
 					if (error.error.code === "PASSWORD_COMPROMISED") {
 						toast.error("Password is compromised, please use a different password", {
@@ -138,11 +139,6 @@ export default function SignUpForm({
 
 	return (
 		<>
-			<VerifyEmailModal
-				isOpen={isVerifyEmailModalOpen}
-				setIsOpen={setVerifyEmailModalOpen}
-				email={emailToVerify}
-			/>
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 					<FormField

@@ -15,7 +15,7 @@ export const resend: Resend = new Resend(components.resend, {
 });
 
 // EMAIL_OUT_TEST is used to test emails that are outside of the same domain
-const isDev = (process.env.EMAIL_OUT_TEST !== "true") && (process.env.NODE_ENV === "development" || process.env.TEST === "true")
+const isDev = (process.env.EMAIL_OUT_TEST !== "true") && (process.env.IS_DEV === "true" || process.env.TEST === "true")
 const email = isDev ? "onboarding@resend.dev" : "no-reply@noreply.tockanest.ch"
 const from = `Tocka's Nest <${email}>`
 

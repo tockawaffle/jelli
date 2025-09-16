@@ -1,6 +1,5 @@
 import { convex } from "@convex-dev/better-auth/plugins";
 import { betterAuth } from "better-auth";
-import { localization as errorLocalization } from "better-auth-localization";
 import { apiKey, createAuthMiddleware, deviceAuthorization, haveIBeenPwned, lastLoginMethod, openAPI, organization, twoFactor } from "better-auth/plugins";
 import { fetchAction } from "convex/nextjs";
 import { api } from "../../convex/_generated/api";
@@ -8,6 +7,7 @@ import { type GenericCtx } from "../../convex/_generated/server";
 import { authComponent } from "../../convex/auth";
 import { getFullOrganizationMiddleware } from "./helpers/middlewares";
 import { auditLogsPlugin } from "./helpers/plugins/server/audit_logs";
+import { localization as errorLocalization } from "./helpers/plugins/server/better-auth-localization";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
@@ -15,13 +15,16 @@ export const createAuth = (ctx: GenericCtx) =>
 	betterAuth({
 		baseURL: siteUrl,
 		trustedOrigins: async (request) => {
-			const isDev = process.env.NODE_ENV === "development";
+			const isDev = process.env.IS_DEV == "true";
+			console.log("[BetterAuth - Internal] IS_DEV:", process.env.IS_DEV)
+			console.log("[BetterAuth - Internal] isDev:", isDev)
 			if (isDev) {
-				const { networkInterfaces } = await import("node:os");
-				// Get local machine ip address
-				const machineIp = Object.values(networkInterfaces()).flat().map(iface => iface?.address).filter(Boolean);
-				console.info("[BetterAuth - Internal] Trusted origins:", [siteUrl, ...machineIp])
-				return [siteUrl, ...machineIp] as string[]; // Add all local ip addresses to the trusted origins (ALL IPS FROM ALL INTERFACES)
+				// Have to set this manually, ffs
+				let trustedOriginsEnv = process.env.TRUSTED_ORIGINS || "";
+				// Format the trusted origins env variable to an array
+				let trustedOrigins = trustedOriginsEnv.split(",");
+				console.log("[BetterAuth - Internal] Trusted origins:", [siteUrl, ...trustedOrigins])
+				return [siteUrl, ...trustedOrigins] as string[]; // Add all local ip addresses to the trusted origins (ALL IPS FROM ALL INTERFACES)
 			} else {
 				return [siteUrl] as string[];
 			}
@@ -124,6 +127,12 @@ export const createAuth = (ctx: GenericCtx) =>
 			errorLocalization({
 				defaultLocale: "pt-BR",
 				fallbackLocale: "default",
+				translations: {
+					"pt-BR": {
+						//@ts-ignore
+						PASSWORD_COMPROMISED: "Essa senha foi comprometida, por favor, utilize uma senha diferente",
+					}
+				}
 			})
 		],
 		rateLimit: {

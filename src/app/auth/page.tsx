@@ -13,7 +13,7 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import ForgotPasswordForm from "./components/ForgotPasswordForm";
-import { ResetPasswordModal } from "./components/Modals";
+import { ResetPasswordModal, VerifyEmailModal } from "./components/Modals";
 import SignInForm from "./components/SignInForm";
 import SignUpForm from "./components/SignUpForm";
 
@@ -29,6 +29,8 @@ export default function AuthPage() {
 		"signIn"
 	);
 	const [isResetPasswordModalOpen, setResetPasswordModalOpen] = useState(false);
+	const [isVerifyEmailModalOpen, setVerifyEmailModalOpen] = useState(false);
+	const [emailToVerify, setEmailToVerify] = useState("");
 	const [animationsEnabled, setAnimationsEnabled] = useState(true);
 	const [selectedAnimation, setSelectedAnimation] = useState<"squares" | "jelli" | "none">("jelli");
 	const [colors, setColors] = useState({
@@ -85,7 +87,7 @@ export default function AuthPage() {
 	}, [theme]);
 
 	useEffect(() => {
-		if (isLoading) return;
+		if (isLoading || isVerifyEmailModalOpen) return;
 		if (isAuthenticated) {
 			if (redirect) {
 				router.push(redirect);
@@ -93,7 +95,7 @@ export default function AuthPage() {
 				router.push("/dashboard");
 			}
 		}
-	}, [isAuthenticated, isLoading, router]);
+	}, [isAuthenticated, isLoading, router, redirect, isVerifyEmailModalOpen]);
 
 	if (isLoading) {
 		return (
@@ -108,6 +110,11 @@ export default function AuthPage() {
 			<ResetPasswordModal
 				isOpen={isResetPasswordModalOpen}
 				setIsOpen={setResetPasswordModalOpen}
+			/>
+			<VerifyEmailModal
+				isOpen={isVerifyEmailModalOpen}
+				setIsOpen={setVerifyEmailModalOpen}
+				email={emailToVerify}
 			/>
 			<div className="absolute inset-0 z-0">
 				{animationsEnabled && selectedAnimation === "jelli" && <IntegratedBackground primaryColor={colors.primary} secondaryColor={colors.secondary} accentColor={colors.accent} />}
@@ -147,9 +154,23 @@ export default function AuthPage() {
 								transition={{ duration: 0.3 }}
 							>
 								{view === "signIn" ? (
-									<SignInForm setView={setView} />
+									<SignInForm
+										setView={setView}
+										redirectTo={redirect ?? undefined}
+										onEmailNotVerified={(email) => {
+											setEmailToVerify(email);
+											setVerifyEmailModalOpen(true);
+										}}
+									/>
 								) : view === "signUp" ? (
-									<SignUpForm setView={setView} />
+									<SignUpForm
+										setView={setView}
+										redirectTo={redirect ?? undefined}
+										onSuccess={(email) => {
+											setEmailToVerify(email);
+											setVerifyEmailModalOpen(true);
+										}}
+									/>
 								) : (
 									<ForgotPasswordForm setView={setView} />
 								)}

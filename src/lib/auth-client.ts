@@ -1,6 +1,7 @@
 import { convexClient } from "@convex-dev/better-auth/client/plugins";
 import { apiKeyClient, deviceAuthorizationClient, lastLoginMethodClient, organizationClient, twoFactorClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
+import { betterAuthLocalizationClientPlugin } from "./helpers/plugins/client/better-auth-localization";
 
 export const authClient = createAuthClient({
 	plugins: [
@@ -14,6 +15,7 @@ export const authClient = createAuthClient({
 		twoFactorClient(),
 		apiKeyClient(),
 		lastLoginMethodClient(),
-		deviceAuthorizationClient()
+		deviceAuthorizationClient(),
+		betterAuthLocalizationClientPlugin()
 	],
 });
