@@ -22,10 +22,15 @@ export default function SignUpForm({
 	setView,
 	redirectTo,
 	onSuccess,
+	invited
 }: {
 	setView: (view: "signIn" | "signUp" | "forgotPassword") => void;
 	redirectTo?: string;
 	onSuccess: (email: string) => void;
+	invited?: {
+		email: string;
+		hasInvite: boolean;
+	}
 }) {
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -33,7 +38,7 @@ export default function SignUpForm({
 	const form = useForm<z.infer<typeof signUpFormSchema>>({
 		resolver: zodResolver(signUpFormSchema),
 		defaultValues: {
-			email: "",
+			email: invited?.hasInvite ? invited.email : "",
 			password: "",
 			confirmPassword: "",
 		},
@@ -151,6 +156,8 @@ export default function SignUpForm({
 									<Input
 										placeholder="Enter your email"
 										type="email"
+										disabled={invited?.hasInvite}
+										readOnly={invited?.hasInvite}
 										className="h-11 text-base bg-background border-border/50"
 										{...field}
 									/>

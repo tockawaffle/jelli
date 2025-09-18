@@ -41,9 +41,10 @@ type HomeSectionProps = {
 	},
 	activeMember: Member | null,
 	router: AppRouterInstance,
+	refetchOrg: () => void,
 }
 
-export default function HomeSection({ currentOrg, session, activeMember }: HomeSectionProps) {
+export default function HomeSection({ currentOrg, session, activeMember, refetchOrg }: HomeSectionProps) {
 	if (!session) return null;
 	if (!activeMember || !currentOrg) {
 		return (
@@ -348,6 +349,7 @@ export default function HomeSection({ currentOrg, session, activeMember }: HomeS
 					<QuickActions
 						userData={{ role: userRole || "", id: user.id }}
 						orgData={currentOrg as unknown as FullOrganization}
+						refetchOrg={refetchOrg}
 					/>
 				</motion.div>
 			</div>

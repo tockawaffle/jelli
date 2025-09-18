@@ -1,6 +1,6 @@
 import { CreateOrganizationSchema } from "@/components/dashboard/CreateOrgDialog";
 import type { Redis } from "@upstash/redis";
-import type { Member } from "better-auth/plugins";
+import type { Invitation, Member } from "better-auth/plugins";
 
 declare global {
 	var _betterAuthRedis: Redis | undefined;
@@ -36,28 +36,15 @@ declare global {
 		logo: string | null
 		createdAt: number
 		metadata: string // Should be a JSON string
-		invitations: {
-			id: string
-			organizationId: string
-			email: string
-			role: 'owner' | 'admin' | 'member'
-			status: 'pending' | 'accepted' | 'declined'
-			expiresAt: number
-			inviterId: string
-		}[]
-		members: {
-			id: string
-			organizationId: string
-			userId: string
-			role: 'owner' | 'admin' | 'member'
-			createdAt: number
+		invitations: Invitation[]
+		members: (Member & {
 			user: {
 				id: string
 				name: string | null
 				email: string
 				image?: string
 			}
-		}[]
+		})[]
 		teams: any | null
 	}
 

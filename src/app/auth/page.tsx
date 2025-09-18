@@ -20,13 +20,17 @@ import SignUpForm from "./components/SignUpForm";
 export default function AuthPage() {
 
 	const searchParams = useSearchParams();
+	const method = searchParams.get("method") as "signUp" | "signIn";
+	const type = searchParams.get("type");
 	const redirect = searchParams.get("redirect");
+	const invited = searchParams.get("invited");
+	const redirectUrl = new URL(redirect + (invited ? `&invited=${invited}` : ""));
 
 	const { isAuthenticated, isLoading } = useConvexAuth();
 	const { theme } = useTheme();
 	const router = useRouter();
 	const [view, setView] = useState<"signIn" | "signUp" | "forgotPassword">(
-		"signIn"
+		type === "orgInvite" ? (method === "signUp" ? "signUp" : "signIn") : "signIn"
 	);
 	const [isResetPasswordModalOpen, setResetPasswordModalOpen] = useState(false);
 	const [isVerifyEmailModalOpen, setVerifyEmailModalOpen] = useState(false);
@@ -90,7 +94,7 @@ export default function AuthPage() {
 		if (isLoading || isVerifyEmailModalOpen) return;
 		if (isAuthenticated) {
 			if (redirect) {
-				router.push(redirect);
+				router.push(redirectUrl.toString());
 			} else {
 				router.push("/dashboard");
 			}
@@ -116,6 +120,7 @@ export default function AuthPage() {
 				setIsOpen={setVerifyEmailModalOpen}
 				email={emailToVerify}
 			/>
+
 			<div className="absolute inset-0 z-0">
 				{animationsEnabled && selectedAnimation === "jelli" && <IntegratedBackground primaryColor={colors.primary} secondaryColor={colors.secondary} accentColor={colors.accent} />}
 				{animationsEnabled && selectedAnimation === "squares" && <Squares borderColor={colors.primary} hoverFillColor={colors.secondary} />}
@@ -123,7 +128,7 @@ export default function AuthPage() {
 			<div className="flex flex-col min-h-screen w-screen items-center justify-center bg-background gap-8 p-4 sm:p-0">
 				<Card className="relative w-full max-w-md bg-card text-card-foreground p-6 sm:p-8 rounded-2xl shadow-2xl border-border/50">
 					<div className="absolute top-4 left-4">
-						<Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={() => router.back()}>
+						<Button disabled={type === "orgInvite"} variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={() => router.back()}>
 							<ArrowLeft className="w-5 h-5" />
 						</Button>
 					</div>
@@ -156,7 +161,7 @@ export default function AuthPage() {
 								{view === "signIn" ? (
 									<SignInForm
 										setView={setView}
-										redirectTo={redirect ?? undefined}
+										redirectTo={redirectUrl.toString()}
 										onEmailNotVerified={(email) => {
 											setEmailToVerify(email);
 											setVerifyEmailModalOpen(true);
@@ -165,11 +170,12 @@ export default function AuthPage() {
 								) : view === "signUp" ? (
 									<SignUpForm
 										setView={setView}
-										redirectTo={redirect ?? undefined}
+										redirectTo={redirectUrl.toString()}
 										onSuccess={(email) => {
 											setEmailToVerify(email);
 											setVerifyEmailModalOpen(true);
 										}}
+										invited={type === "orgInvite" ? { email: searchParams.get("invited") as string, hasInvite: true } : undefined}
 									/>
 								) : (
 									<ForgotPasswordForm setView={setView} />

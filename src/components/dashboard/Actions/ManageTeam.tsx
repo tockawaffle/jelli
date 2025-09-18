@@ -1,3 +1,4 @@
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,9 +26,10 @@ type ControlledProps = {
 	error?: string | null;
 	orgData: FullOrganization;
 	currentUserId: string;
+	refetchOrg: () => void;
 };
 
-export default function ManageTeamSheet({ open, onOpenChange, error, orgData, currentUserId }: ControlledProps) {
+export default function ManageTeamSheet({ open, onOpenChange, error, orgData, currentUserId, refetchOrg }: ControlledProps) {
 
 	const { members, invitations } = orgData;
 	const { hours } = JSON.parse(orgData.metadata || "{}") as OrgMetadata;
@@ -93,7 +95,7 @@ export default function ManageTeamSheet({ open, onOpenChange, error, orgData, cu
 									</TabsTrigger>
 								</TabsList>
 								<MembersTab members={members} handleMemberClick={handleMemberClick} currentUserId={currentUserId} />
-								<InvitesTab orgData={orgData} />
+								<InvitesTab orgData={orgData} refetchOrg={refetchOrg} />
 								<PoliciesTab hours={hours} />
 							</Tabs>
 						</motion.div>
@@ -238,16 +240,57 @@ function MembersTab({ members, handleMemberClick, currentUserId }: { members: Fu
 	)
 }
 
-function InvitesTab({ orgData }: { orgData: FullOrganization }) {
+function InvitesTab({ orgData, refetchOrg }: { orgData: FullOrganization, refetchOrg: () => void }) {
 	const { invitations, id: orgId } = orgData;
 	const [email, setEmail] = useState("");
 	const [role, setRole] = useState("member");
 	const [isSending, setIsSending] = useState(false);
 	const [selectedInvite, setSelectedInvite] = useState<FullOrganization["invitations"][number] | null>(null);
+	const [inviteToCancel, setInviteToCancel] = useState<FullOrganization["invitations"][number] | null>(null);
+
+	const handleCancelInvite = () => {
+		if (!inviteToCancel) return;
+		authClient.organization.cancelInvitation({
+			invitationId: inviteToCancel.id,
+		}, {
+			onSuccess: () => {
+				toast.success("Invite cancelled successfully");
+				setInviteToCancel(null);
+				refetchOrg();
+			},
+			onError: (e) => {
+				console.error(e);
+				toast.error("Failed to cancel invite: " + e.error.message);
+			}
+		});
+	};
+
 
 	return (
 		<>
-			<InviteDetailsModal invite={selectedInvite} members={orgData.members} isOpen={!!selectedInvite} onOpenChange={() => setSelectedInvite(null)} />
+			<InviteDetailsModal invite={selectedInvite} members={orgData.members} isOpen={!!selectedInvite} onOpenChange={() => setSelectedInvite(null)} refetchOrg={refetchOrg} />
+			<AlertDialog open={!!inviteToCancel} onOpenChange={(open) => !open && setInviteToCancel(null)}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+						<AlertDialogDescription>
+							This action cannot be undone. This will permanently revoke the invitation for <span className="font-semibold">{inviteToCancel?.email}</span>.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel onClick={() => setInviteToCancel(null)}>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={(e) => {
+								e.preventDefault()
+								handleCancelInvite()
+							}}
+							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+						>
+							Continue
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 			<TabsContent value="invites" className="pt-3">
 				<div className="grid gap-4">
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -307,50 +350,43 @@ function InvitesTab({ orgData }: { orgData: FullOrganization }) {
 						>
 							{invitations.length > 0 ? (
 								<AnimatePresence>
-									{invitations.map(invite => (
-										<motion.div
-											key={invite.id}
-											initial={{ opacity: 0, y: 20 }}
-											animate={{ opacity: 1, y: 0 }}
-											exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
-											layout
-											className="flex items-center justify-between gap-2 p-2 rounded-md hover:bg-muted cursor-pointer"
-											onClick={() => setSelectedInvite(invite)}
-										>
-											<div className="flex items-center gap-2">
-												<div className="p-2 rounded-md bg-muted-foreground/10">
-													<Link2Icon className="size-4" />
+									{invitations.map(invite => {
+										if (invite.status === "canceled") return null;
+
+										return (
+											<motion.div
+												key={invite.id}
+												initial={{ opacity: 0, y: 20 }}
+												animate={{ opacity: 1, y: 0 }}
+												exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
+												layout
+												className="flex items-center justify-between gap-2 p-2 rounded-md hover:bg-muted cursor-pointer"
+												onClick={() => setSelectedInvite(invite)}
+											>
+												<div className="flex items-center gap-2">
+													<div className="p-2 rounded-md bg-muted-foreground/10">
+														<Link2Icon className="size-4" />
+													</div>
+													<div className="grid">
+														<span className="font-mono text-xs">{invite.email}</span>
+														<Badge variant={invite.role === "admin" ? "secondary" : "outline"} className="w-fit">
+															{invite.role === "admin" ? "Admin" : "Member"}
+														</Badge>
+													</div>
 												</div>
-												<div className="grid">
-													<span className="font-mono text-xs">{invite.email}</span>
-													<Badge variant={invite.role === "admin" ? "secondary" : "outline"} className="w-fit">
-														{invite.role === "admin" ? "Admin" : "Member"}
-													</Badge>
-												</div>
-											</div>
-											<Button
-												variant="ghost"
-												size="icon"
-												className="shrink-0 rounded-full size-8 hover:bg-destructive hover:text-destructive-foreground"
-												onClick={(e) => {
-													e.stopPropagation();
-													authClient.organization.cancelInvitation({
-														invitationId: invite.id,
-													}, {
-														onSuccess: () => {
-															toast.success("Invite cancelled successfully");
-														},
-														onError: (e) => {
-															console.error(e);
-															toast.error("Failed to cancel invite: " + e.error.message);
-														}
-													}
-													);
-												}}>
-												<Trash className="size-4" />
-											</Button>
-										</motion.div>
-									))}
+												<Button
+													variant="ghost"
+													size="icon"
+													className="shrink-0 rounded-full size-8 hover:bg-destructive hover:text-destructive-foreground"
+													onClick={(e) => {
+														e.stopPropagation();
+														setInviteToCancel(invite);
+													}}>
+													<Trash className="size-4" />
+												</Button>
+											</motion.div>
+										)
+									})}
 								</AnimatePresence>
 							) : (
 								<div className="flex items-center justify-center h-full p-4">
@@ -405,7 +441,7 @@ function PoliciesTab({ hours }: { hours: OrgMetadata["hours"] }) {
 	)
 }
 
-function InviteDetailsModal({ invite, members, isOpen, onOpenChange }: { invite: FullOrganization["invitations"][number] | null, members: FullOrganization["members"], isOpen: boolean, onOpenChange: (open: boolean) => void }) {
+function InviteDetailsModal({ invite, members, isOpen, onOpenChange, refetchOrg }: { invite: FullOrganization["invitations"][number] | null, members: FullOrganization["members"], isOpen: boolean, onOpenChange: (open: boolean) => void, refetchOrg: () => void }) {
 	if (!invite) return null;
 
 	const inviter = members.find(member => member.userId === invite.inviterId);
@@ -418,6 +454,7 @@ function InviteDetailsModal({ invite, members, isOpen, onOpenChange }: { invite:
 			onSuccess: () => {
 				toast.success("Invite cancelled successfully");
 				onOpenChange(false);
+				refetchOrg();
 			},
 			onError: (e) => {
 				console.error(e);

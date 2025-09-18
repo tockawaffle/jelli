@@ -23,7 +23,7 @@ export default function ClockInOutDialog({ open, onOpenChange, error, userRole, 
 	const [method, setMethod] = React.useState<"qr" | "request" | "nfc">("request");
 	const [requestType, setRequestType] = React.useState<"clock-in" | "clock-out" | "lunch-break-start" | "lunch-break-end" | "time-off">("clock-in");
 	const { data: activeOrg } = authClient.useActiveOrganization();
-	const todayRow = useQuery(api.attendance.getTodayForCurrentUser, { orgId: activeOrg?.id ?? "" });
+	const todayRow = useQuery(api.orgs.attendance.getTodayForCurrentUser, { orgId: activeOrg?.id ?? "" });
 	type LocationStatus = "idle" | "checking" | "granted" | "denied" | "error";
 	const [locationStatus, setLocationStatus] = React.useState<LocationStatus>("idle");
 	const permissionStateRef = React.useRef<"granted" | "denied" | "prompt" | null>(null);

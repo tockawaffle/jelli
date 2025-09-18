@@ -12,7 +12,8 @@ export const orgInvitationSchema = z.object({
 	invitedByUsername: z.string(),
 	invitedByEmail: z.email(),
 	orgName: z.string(),
-	inviteLink: z.string(),
+	orgAvatar: z.string(),
+	inviteLink: z.url(),
 })
 
 export const resetPasswordSchema = z.object({

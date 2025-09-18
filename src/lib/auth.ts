@@ -89,12 +89,17 @@ export const createAuth = (ctx: GenericCtx) =>
 					}
 				},
 				async sendInvitationEmail(data) {
-					const inviteLink = `${siteUrl}/orgs/invite/${data.id}`
+					const inviteLink = `${siteUrl}/orgs/invite?id=${data.id}&invited=${data.email}`
+
+					// Gets the org avatar from the organization
+					const orgAvatar = await ctx.storage.getUrl(data.organization.logo as any)
+
 					await fetchAction(api.emails.orgs.send, {
 						email: data.email,
 						invitedByUsername: data.inviter.user.name,
 						invitedByEmail: data.inviter.user.email,
 						orgName: data.organization.name,
+						orgAvatar: orgAvatar || "",
 						inviteLink
 					})
 				},

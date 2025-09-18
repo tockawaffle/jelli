@@ -20,18 +20,17 @@ interface OrgInvitationProps {
 	invitedByUsername: string
 	invitedByEmail: string
 	orgName: string
+	orgAvatar: string
 	inviteLink: string
 }
 
-export const OrgInvitationTemplate = ({ email, invitedByUsername, invitedByEmail, orgName, inviteLink }: OrgInvitationProps) => {
-	const orgAvatar = "https://kf9653eimo.ufs.sh/f/JLwV8LM67suiZK8ap69z12uFvPBalx90RDhSAbJm4GrMkjdV"
-
+export const OrgInvitationTemplate = ({ email, invitedByUsername, invitedByEmail, orgName, orgAvatar, inviteLink }: OrgInvitationProps) => {
 	return (
 		<Html>
 			<Head>
 				<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 			</Head>
-			<Preview>You\'re invited to join {orgName} on Jelli</Preview>
+			<Preview>You're invited to join {orgName} on Jelli</Preview>
 			<Body style={styles.body}>
 				<Container style={styles.container}>
 					<Section style={styles.header}>
@@ -44,7 +43,7 @@ export const OrgInvitationTemplate = ({ email, invitedByUsername, invitedByEmail
 
 					<Section style={styles.mainContent}>
 						<Heading style={styles.heading}>Invitation to join {orgName}</Heading>
-						<Text style={styles.subheading}>You\'ve been invited to collaborate</Text>
+						<Text style={styles.subheading}>You've been invited to collaborate</Text>
 
 						<Section style={styles.contentCard}>
 							<Text style={styles.greeting}>Hello {email},</Text>
@@ -61,22 +60,26 @@ export const OrgInvitationTemplate = ({ email, invitedByUsername, invitedByEmail
 						</Section>
 
 						<Section style={styles.securitySection}>
-							<div style={styles.securityHeader}>
-								<svg
-									width="20"
-									height="20"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									strokeWidth="2"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									style={styles.securityIcon}
-								>
-									<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-								</svg>
-								<Text style={styles.securityTitle}>Security Information</Text>
-							</div>
+							<Row style={styles.securityHeader}>
+								<Column width="30">
+									<svg
+										width="20"
+										height="20"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										strokeWidth="2"
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										style={styles.securityIcon}
+									>
+										<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+									</svg>
+								</Column>
+								<Column>
+									<Text style={styles.securityTitle}>Security Information</Text>
+								</Column>
+							</Row>
 							<ul style={styles.securityList}>
 								<li style={styles.securityItem}>This invitation link may expire for security reasons</li>
 								<li style={styles.securityItem}>If you did not expect this invitation, you can safely ignore this email</li>
@@ -84,24 +87,26 @@ export const OrgInvitationTemplate = ({ email, invitedByUsername, invitedByEmail
 							</ul>
 						</Section>
 
-						<Text style={styles.noteText}>If the button doesn\'t work, copy and paste this link into your browser: {inviteLink}</Text>
+						<Text style={styles.noteText}>If the button doesn't work, copy and paste this link into your browser: {inviteLink}</Text>
 					</Section>
 
 					<Section style={styles.footer}>
 						<Text style={styles.copyright}>© {dayjs().year()} Jelli. All rights reserved.</Text>
-						<div style={styles.footerLinks}>
-							<Link href="#" style={styles.link}>
-								Privacy Policy
-							</Link>
-							<span style={styles.divider}>•</span>
-							<Link href="#" style={styles.link}>
-								Terms of Service
-							</Link>
-							<span style={styles.divider}>•</span>
-							<Link href="#" style={styles.link}>
-								Contact Support
-							</Link>
-						</div>
+						<Row style={styles.footerLinks}>
+							<Column align="center">
+								<Link href="#" style={styles.link}>
+									Privacy Policy
+								</Link>
+								<span style={styles.divider}>•</span>
+								<Link href="#" style={styles.link}>
+									Terms of Service
+								</Link>
+								<span style={styles.divider}>•</span>
+								<Link href="#" style={styles.link}>
+									Contact Support
+								</Link>
+							</Column>
+						</Row>
 					</Section>
 				</Container>
 			</Body>
@@ -111,74 +116,72 @@ export const OrgInvitationTemplate = ({ email, invitedByUsername, invitedByEmail
 
 const styles = {
 	body: {
-		backgroundColor: "oklch(0.98 0 0)",
-		fontFamily: "Geist Mono, monospace",
+		backgroundColor: "#f9f9f9",
+		fontFamily: "'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'",
 		margin: 0,
 		padding: "24px",
-		color: "oklch(0.24 0 0)",
-		letterSpacing: "0.05em",
+		color: "#333333",
 	},
 	container: {
 		width: "100%",
 		maxWidth: "550px",
 		margin: "0 auto",
-		backgroundColor: "oklch(0.99 0 0)",
-		borderRadius: "0.3rem",
+		backgroundColor: "#ffffff",
+		borderRadius: "8px",
 		overflow: "hidden",
-		boxShadow: "0 1px 5px 0.5px hsl(0 0% 10.20% / 0.20), 0 2px 4px -0.5px hsl(0 0% 10.20% / 0.20)",
+		border: "1px solid #e0e0e0",
 	},
 	header: {
-		backgroundColor: "oklch(0.44 0.04 44.87)",
+		backgroundColor: "#5E50F9",
 		padding: "32px 0",
 		textAlign: "center" as const,
 	},
 	logo: {
 		borderRadius: "50%",
-		boxShadow: "0 1px 5px 0.5px hsl(0 0% 10.20% / 0.20), 0 1px 2px -0.5px hsl(0 0% 10.20% / 0.20)",
-		border: "2px solid oklch(1.00 0 0)",
+		border: "2px solid #ffffff",
 		margin: "0 auto",
 		display: "block",
-		backgroundColor: "oklch(1.00 0 0)",
+		backgroundColor: "#ffffff",
 	},
 	mainContent: {
-		backgroundColor: "oklch(0.99 0 0)",
+		backgroundColor: "#ffffff",
 		padding: "32px 36px",
-		color: "oklch(0.24 0 0)",
+		color: "#333333",
 	},
 	heading: {
 		fontSize: "26px",
 		fontWeight: "700",
-		color: "oklch(0.24 0 0)",
+		color: "#333333",
 		textAlign: "center" as const,
 		margin: "0 0 8px",
 		lineHeight: "1.3",
-		fontFamily: "Inter, sans-serif",
+		fontFamily: "'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'",
 	},
 	subheading: {
 		fontSize: "16px",
-		color: "oklch(0.50 0 0)",
+		color: "#808080",
 		textAlign: "center" as const,
 		margin: "0 0 28px",
 		fontWeight: "400",
 	},
 	contentCard: {
-		backgroundColor: "oklch(0.95 0 0)",
-		borderRadius: "0.3rem",
+		backgroundColor: "#f2f2f2",
+		borderRadius: "8px",
 		padding: "24px",
 		marginBottom: "28px",
-		border: "1px solid oklch(0.88 0 0)",
+		border: "1px solid #e0e0e0",
 	},
 	greeting: {
 		fontSize: "18px",
 		fontWeight: "600",
-		color: "oklch(0.24 0 0)",
+		color: "#333333",
 		margin: "0 0 16px",
-		fontFamily: "Inter, sans-serif",
+		fontFamily: "'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'",
 	},
 	paragraph: {
 		fontSize: "16px",
 		lineHeight: "1.6",
-		color: "oklch(0.24 0 0)",
+		color: "#333333",
 		margin: "0 0 24px",
 	},
 	buttonContainer: {
@@ -186,9 +189,9 @@ const styles = {
 		margin: "24px 0 8px",
 	},
 	button: {
-		backgroundColor: "oklch(0.44 0.04 44.87)",
-		borderRadius: "0.3rem",
-		color: "oklch(1.00 0 0)",
+		backgroundColor: "#5E50F9",
+		borderRadius: "8px",
+		color: "#ffffff",
 		fontSize: "16px",
 		fontWeight: "600",
 		textDecoration: "none",
@@ -196,30 +199,26 @@ const styles = {
 		display: "inline-block",
 		padding: "12px 28px",
 		border: "none",
-		boxShadow: "0 1px 5px 0.5px hsl(0 0% 10.20% / 0.20), 0 1px 2px -0.5px hsl(0 0% 10.20% / 0.20)",
 	},
 	securitySection: {
 		margin: "28px 0 24px",
 		padding: "20px",
-		backgroundColor: "oklch(0.93 0 0)",
-		borderRadius: "0.3rem",
-		border: "1px solid oklch(0.88 0 0)",
+		backgroundColor: "#f2f2f2",
+		borderRadius: "8px",
+		border: "1px solid #e0e0e0",
 	},
 	securityHeader: {
-		display: "flex",
-		alignItems: "center",
-		marginBottom: "12px",
+		width: "100%",
 	},
 	securityIcon: {
-		color: "oklch(0.50 0 0)",
-		marginRight: "8px",
+		color: "#808080",
 	},
 	securityTitle: {
 		fontSize: "16px",
 		fontWeight: "600",
-		color: "oklch(0.24 0 0)",
+		color: "#333333",
 		margin: "0",
-		fontFamily: "Inter, sans-serif",
+		fontFamily: "'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'",
 	},
 	securityList: {
 		margin: "10px 0 0",
@@ -227,13 +226,13 @@ const styles = {
 	},
 	securityItem: {
 		fontSize: "14px",
-		color: "oklch(0.50 0 0)",
+		color: "#808080",
 		margin: "0 0 8px",
 		lineHeight: "1.5",
 	},
 	noteText: {
 		fontSize: "14px",
-		color: "oklch(0.50 0 0)",
+		color: "#808080",
 		fontStyle: "italic",
 		lineHeight: "1.5",
 		margin: "20px 0 0",
@@ -241,34 +240,32 @@ const styles = {
 	},
 	footer: {
 		padding: "24px 36px",
-		backgroundColor: "oklch(0.95 0 0)",
-		borderTop: "1px solid oklch(0.88 0 0)",
+		backgroundColor: "#f9f9f9",
+		borderTop: "1px solid #e0e0e0",
 		textAlign: "center" as const,
 	},
 	copyright: {
 		fontSize: "14px",
-		color: "oklch(0.50 0 0)",
+		color: "#808080",
 		margin: "0 0 12px",
 	},
 	footerLinks: {
-		display: "flex",
-		justifyContent: "center" as const,
-		flexWrap: "wrap" as const,
+		width: "100%",
 	},
 	link: {
-		color: "oklch(0.44 0.04 44.87)",
+		color: "#5E50F9",
 		textDecoration: "none",
 		fontSize: "14px",
 		margin: "0 4px",
 	},
 	divider: {
-		color: "oklch(0.88 0 0)",
+		color: "#e0e0e0",
 		margin: "0 6px",
 		fontSize: "14px",
 	},
 	"@media only screen and (max-width: 600px)": {
 		body: { padding: "16px 12px" },
-		container: { borderRadius: "calc(0.3rem - 4px)" },
+		container: { borderRadius: "4px" },
 		mainContent: { padding: "24px 20px" },
 		heading: { fontSize: "24px" },
 		contentCard: { padding: "20px" },

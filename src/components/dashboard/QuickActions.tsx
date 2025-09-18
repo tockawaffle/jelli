@@ -34,7 +34,7 @@ const actions = [
 	}
 ];
 
-export default function QuickActions({ userData, orgData }: { userData: { role: string, id: string }, orgData: FullOrganization }) {
+export default function QuickActions({ userData, orgData, refetchOrg }: { userData: { role: string, id: string }, orgData: FullOrganization, refetchOrg: () => void }) {
 	const [clockModalOpen, setClockModalOpen] = useState(false);
 	const [timeOffOpen, setTimeOffOpen] = useState(false);
 	const [reportOpen, setReportOpen] = useState(false);
@@ -155,7 +155,7 @@ export default function QuickActions({ userData, orgData }: { userData: { role: 
 			<ClockInOutDialog open={clockModalOpen} onOpenChange={setClockModalOpen} userRole={userData.role} />
 			<RequestTimeOffDialog open={timeOffOpen} onOpenChange={setTimeOffOpen} orgData={orgData} />
 			<GenerateReportDialog open={reportOpen} onOpenChange={setReportOpen} canGenerateOrgReport={canGenerateOrgReport} orgData={orgData} />
-			<ManageTeamSheet open={teamOpen} onOpenChange={setTeamOpen} orgData={orgData} currentUserId={userData.id} />
+			<ManageTeamSheet open={teamOpen} onOpenChange={setTeamOpen} orgData={orgData} currentUserId={userData.id} refetchOrg={refetchOrg} />
 		</motion.div>
 	);
 }

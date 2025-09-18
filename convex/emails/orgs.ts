@@ -28,11 +28,12 @@ export async function sendOrgInvitation(
 	invitedByUsername: string,
 	invitedByEmail: string,
 	orgName: string,
+	orgAvatar: string,
 	inviteLink: string,
 	ctx: any
 ): Promise<EmailResult> {
 	// Validate email configuration first
-	const configResult = validateOrgInvitation({ email, invitedByUsername, invitedByEmail, orgName, inviteLink });
+	const configResult = validateOrgInvitation({ email, invitedByUsername, invitedByEmail, orgName, orgAvatar, inviteLink });
 	if (configResult.isErr()) {
 		return err(configResult.error);
 	}
@@ -43,10 +44,11 @@ export async function sendOrgInvitation(
 		invitedByUsername,
 		invitedByEmail,
 		orgName,
+		orgAvatar,
 		inviteLink
 	})
 
-	const { email: validatedEmail, invitedByUsername: validatedInvitedByUsername, invitedByEmail: validatedInvitedByEmail, orgName: validatedOrgName, inviteLink: validatedInviteLink } = configResult.value as z.infer<typeof orgInvitationSchema>
+	const { email: validatedEmail, invitedByUsername: validatedInvitedByUsername, invitedByEmail: validatedInvitedByEmail, orgName: validatedOrgName, orgAvatar: validatedOrgAvatar, inviteLink: validatedInviteLink } = configResult.value as z.infer<typeof orgInvitationSchema>
 
 	try {
 
@@ -55,6 +57,7 @@ export async function sendOrgInvitation(
 			invitedByUsername: validatedInvitedByUsername,
 			invitedByEmail: validatedInvitedByEmail,
 			orgName: validatedOrgName,
+			orgAvatar: validatedOrgAvatar,
 			inviteLink: validatedInviteLink
 		})).catch((error) => {
 			console.error("[Org invitation] Error rendering email template:", error)
@@ -86,6 +89,7 @@ export const send = action({
 		invitedByUsername: v.string(),
 		invitedByEmail: v.string(),
 		orgName: v.string(),
+		orgAvatar: v.string(),
 		inviteLink: v.string(),
 	}),
 	returns: v.object({
@@ -93,8 +97,8 @@ export const send = action({
 		message: v.string(),
 	}),
 	handler: async (ctx, args): Promise<{ success: boolean; message: string }> => {
-		const { email, invitedByUsername, invitedByEmail, orgName, inviteLink } = args
-		const result = await sendOrgInvitation(email, invitedByUsername, invitedByEmail, orgName, inviteLink, ctx)
+		const { email, invitedByUsername, invitedByEmail, orgName, orgAvatar, inviteLink } = args
+		const result = await sendOrgInvitation(email, invitedByUsername, invitedByEmail, orgName, orgAvatar, inviteLink, ctx)
 		if (result.isErr()) {
 			console.error("[Org invitation - Mutation] Error sending email:", result.error)
 			throw new Error(result.error.message);

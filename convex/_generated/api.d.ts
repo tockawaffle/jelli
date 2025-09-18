@@ -8,7 +8,6 @@
  * @module
  */
 
-import type * as attendance from "../attendance.js";
 import type * as auth from "../auth.js";
 import type * as betterAuth__generated_api from "../betterAuth/_generated/api.js";
 import type * as betterAuth__generated_server from "../betterAuth/_generated/server.js";
@@ -24,7 +23,10 @@ import type * as emails_validator from "../emails/validator.js";
 import type * as emails_verification from "../emails/verification.js";
 import type * as files from "../files.js";
 import type * as http from "../http.js";
+import type * as orgs_attendance from "../orgs/attendance.js";
 import type * as orgs_get from "../orgs/get.js";
+import type * as orgs_invites from "../orgs/invites.js";
+import type * as user_verify from "../user/verify.js";
 
 import type {
   ApiFromModules,
@@ -41,7 +43,6 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
-  attendance: typeof attendance;
   auth: typeof auth;
   "betterAuth/_generated/api": typeof betterAuth__generated_api;
   "betterAuth/_generated/server": typeof betterAuth__generated_server;
@@ -57,7 +58,10 @@ declare const fullApi: ApiFromModules<{
   "emails/verification": typeof emails_verification;
   files: typeof files;
   http: typeof http;
+  "orgs/attendance": typeof orgs_attendance;
   "orgs/get": typeof orgs_get;
+  "orgs/invites": typeof orgs_invites;
+  "user/verify": typeof user_verify;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 

@@ -131,7 +131,7 @@ export default function DashboardPage() {
 	const renderContent = () => {
 		switch (selectedAction) {
 			case "home":
-				return <HomeSection currentOrg={currentOrg} session={session} router={router} activeMember={activeMember} />;
+				return <HomeSection currentOrg={currentOrg} session={session} router={router} activeMember={activeMember} refetchOrg={refetchCurrentOrg} />;
 			case "time-tracking":
 				return <div className="p-4">Time Tracking Page</div>;
 			case "schedule":
@@ -141,7 +141,7 @@ export default function DashboardPage() {
 			case "reports":
 				return <div className="p-4">Reports Page</div>;
 			case "quick-actions":
-				return <QuickActions userData={{ role: activeMember?.role || "", id: activeMember?.userId || "" }} orgData={currentOrg as unknown as FullOrganization} />;
+				return <QuickActions userData={{ role: activeMember?.role || "", id: activeMember?.userId || "" }} orgData={currentOrg as unknown as FullOrganization} refetchOrg={refetchCurrentOrg} />;
 			case "settings":
 				return <SettingsPage />;
 			default:
