@@ -16,6 +16,16 @@ const nextConfig: NextConfig = {
 				protocol: "https",
 				hostname: process.env.NEXT_PUBLIC_CONVEX_SITE_URL!.split("//")[1],
 				pathname: "/getImage",
+			},
+			{
+				protocol: "https",
+				hostname: process.env.NEXT_PUBLIC_CONVEX_SITE_URL!.split("//")[1],
+				pathname: "/user/update",
+			},
+			{
+				protocol: "http",
+				hostname: "127.0.0.1",
+				pathname: "/user/update",
 			}
 		],
 	}
