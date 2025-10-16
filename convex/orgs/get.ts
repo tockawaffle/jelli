@@ -79,7 +79,6 @@ export const getOrgMembersInfo = query({
 			}
 		);
 
-		console.log(member);
 		if (!member) throw new Error("Unauthorized");
 		if (typeof member.role !== "string") throw new Error("Unauthorized");
 

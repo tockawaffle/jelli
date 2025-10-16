@@ -88,6 +88,7 @@ export declare const components: {
                   email: string;
                   emailVerified: boolean;
                   image?: null | string;
+                  metadata?: null | any;
                   name: string;
                   twoFactorEnabled?: null | boolean;
                   updatedAt: number;
@@ -149,7 +150,7 @@ export declare const components: {
                   logo?: null | string;
                   metadata?: null | string;
                   name: string;
-                  slug?: null | string;
+                  slug: string;
                 };
                 model: "organization";
               }
@@ -220,9 +221,9 @@ export declare const components: {
                 data: {
                   action: string;
                   ipAddress: string;
-                  severity: "info" | "warning" | "error" | "severe";
+                  severity: string;
                   timestamp: string;
-                  type: "authentication" | "authorization" | "api" | "unknown";
+                  type: string;
                   userAgent: string;
                   userId: string;
                 };
@@ -251,7 +252,8 @@ export declare const components: {
                     | "updatedAt"
                     | "userId"
                     | "twoFactorEnabled"
-                    | "id";
+                    | "metadata"
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -259,6 +261,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -285,7 +288,7 @@ export declare const components: {
                     | "userAgent"
                     | "userId"
                     | "activeOrganizationId"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -293,6 +296,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -323,7 +327,7 @@ export declare const components: {
                     | "password"
                     | "createdAt"
                     | "updatedAt"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -331,6 +335,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -354,7 +359,7 @@ export declare const components: {
                     | "expiresAt"
                     | "createdAt"
                     | "updatedAt"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -362,6 +367,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -379,7 +385,7 @@ export declare const components: {
                 model: "jwks";
                 where?: Array<{
                   connector?: "AND" | "OR";
-                  field: "publicKey" | "privateKey" | "createdAt" | "id";
+                  field: "publicKey" | "privateKey" | "createdAt" | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -387,6 +393,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -410,7 +417,7 @@ export declare const components: {
                     | "logo"
                     | "createdAt"
                     | "metadata"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -418,6 +425,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -440,7 +448,7 @@ export declare const components: {
                     | "userId"
                     | "role"
                     | "createdAt"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -448,6 +456,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -472,7 +481,7 @@ export declare const components: {
                     | "status"
                     | "expiresAt"
                     | "inviterId"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -480,6 +489,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -497,7 +507,7 @@ export declare const components: {
                 model: "twoFactor";
                 where?: Array<{
                   connector?: "AND" | "OR";
-                  field: "secret" | "backupCodes" | "userId" | "id";
+                  field: "secret" | "backupCodes" | "userId" | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -505,6 +515,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -543,7 +554,7 @@ export declare const components: {
                     | "updatedAt"
                     | "permissions"
                     | "metadata"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -551,6 +562,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -578,7 +590,7 @@ export declare const components: {
                     | "pollingInterval"
                     | "clientId"
                     | "scope"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -586,6 +598,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -611,7 +624,7 @@ export declare const components: {
                     | "userAgent"
                     | "severity"
                     | "type"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -619,6 +632,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -662,7 +676,8 @@ export declare const components: {
                     | "updatedAt"
                     | "userId"
                     | "twoFactorEnabled"
-                    | "id";
+                    | "metadata"
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -670,6 +685,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -696,7 +712,7 @@ export declare const components: {
                     | "userAgent"
                     | "userId"
                     | "activeOrganizationId"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -704,6 +720,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -734,7 +751,7 @@ export declare const components: {
                     | "password"
                     | "createdAt"
                     | "updatedAt"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -742,6 +759,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -765,7 +783,7 @@ export declare const components: {
                     | "expiresAt"
                     | "createdAt"
                     | "updatedAt"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -773,6 +791,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -790,7 +809,7 @@ export declare const components: {
                 model: "jwks";
                 where?: Array<{
                   connector?: "AND" | "OR";
-                  field: "publicKey" | "privateKey" | "createdAt" | "id";
+                  field: "publicKey" | "privateKey" | "createdAt" | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -798,6 +817,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -821,7 +841,7 @@ export declare const components: {
                     | "logo"
                     | "createdAt"
                     | "metadata"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -829,6 +849,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -851,7 +872,7 @@ export declare const components: {
                     | "userId"
                     | "role"
                     | "createdAt"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -859,6 +880,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -883,7 +905,7 @@ export declare const components: {
                     | "status"
                     | "expiresAt"
                     | "inviterId"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -891,6 +913,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -908,7 +931,7 @@ export declare const components: {
                 model: "twoFactor";
                 where?: Array<{
                   connector?: "AND" | "OR";
-                  field: "secret" | "backupCodes" | "userId" | "id";
+                  field: "secret" | "backupCodes" | "userId" | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -916,6 +939,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -954,7 +978,7 @@ export declare const components: {
                     | "updatedAt"
                     | "permissions"
                     | "metadata"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -962,6 +986,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -989,7 +1014,7 @@ export declare const components: {
                     | "pollingInterval"
                     | "clientId"
                     | "scope"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -997,6 +1022,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -1022,7 +1048,7 @@ export declare const components: {
                     | "userAgent"
                     | "severity"
                     | "type"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -1030,6 +1056,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -1085,6 +1112,7 @@ export declare const components: {
               | "gte"
               | "eq"
               | "in"
+              | "not_in"
               | "ne"
               | "contains"
               | "starts_with"
@@ -1128,6 +1156,7 @@ export declare const components: {
               | "gte"
               | "eq"
               | "in"
+              | "not_in"
               | "ne"
               | "contains"
               | "starts_with"
@@ -1155,6 +1184,7 @@ export declare const components: {
                   email?: string;
                   emailVerified?: boolean;
                   image?: null | string;
+                  metadata?: null | any;
                   name?: string;
                   twoFactorEnabled?: null | boolean;
                   updatedAt?: number;
@@ -1171,7 +1201,8 @@ export declare const components: {
                     | "updatedAt"
                     | "userId"
                     | "twoFactorEnabled"
-                    | "id";
+                    | "metadata"
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -1179,6 +1210,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -1215,7 +1247,7 @@ export declare const components: {
                     | "userAgent"
                     | "userId"
                     | "activeOrganizationId"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -1223,6 +1255,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -1267,7 +1300,7 @@ export declare const components: {
                     | "password"
                     | "createdAt"
                     | "updatedAt"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -1275,6 +1308,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -1305,7 +1339,7 @@ export declare const components: {
                     | "expiresAt"
                     | "createdAt"
                     | "updatedAt"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -1313,6 +1347,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -1335,7 +1370,7 @@ export declare const components: {
                 };
                 where?: Array<{
                   connector?: "AND" | "OR";
-                  field: "publicKey" | "privateKey" | "createdAt" | "id";
+                  field: "publicKey" | "privateKey" | "createdAt" | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -1343,6 +1378,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -1363,7 +1399,7 @@ export declare const components: {
                   logo?: null | string;
                   metadata?: null | string;
                   name?: string;
-                  slug?: null | string;
+                  slug?: string;
                 };
                 where?: Array<{
                   connector?: "AND" | "OR";
@@ -1373,7 +1409,7 @@ export declare const components: {
                     | "logo"
                     | "createdAt"
                     | "metadata"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -1381,6 +1417,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -1409,7 +1446,7 @@ export declare const components: {
                     | "userId"
                     | "role"
                     | "createdAt"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -1417,6 +1454,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -1449,7 +1487,7 @@ export declare const components: {
                     | "status"
                     | "expiresAt"
                     | "inviterId"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -1457,6 +1495,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -1479,7 +1518,7 @@ export declare const components: {
                 };
                 where?: Array<{
                   connector?: "AND" | "OR";
-                  field: "secret" | "backupCodes" | "userId" | "id";
+                  field: "secret" | "backupCodes" | "userId" | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -1487,6 +1526,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -1547,7 +1587,7 @@ export declare const components: {
                     | "updatedAt"
                     | "permissions"
                     | "metadata"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -1555,6 +1595,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -1593,7 +1634,7 @@ export declare const components: {
                     | "pollingInterval"
                     | "clientId"
                     | "scope"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -1601,6 +1642,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -1619,9 +1661,9 @@ export declare const components: {
                 update: {
                   action?: string;
                   ipAddress?: string;
-                  severity?: "info" | "warning" | "error" | "severe";
+                  severity?: string;
                   timestamp?: string;
-                  type?: "authentication" | "authorization" | "api" | "unknown";
+                  type?: string;
                   userAgent?: string;
                   userId?: string;
                 };
@@ -1635,7 +1677,7 @@ export declare const components: {
                     | "userAgent"
                     | "severity"
                     | "type"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -1643,6 +1685,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -1680,6 +1723,7 @@ export declare const components: {
                   email?: string;
                   emailVerified?: boolean;
                   image?: null | string;
+                  metadata?: null | any;
                   name?: string;
                   twoFactorEnabled?: null | boolean;
                   updatedAt?: number;
@@ -1696,7 +1740,8 @@ export declare const components: {
                     | "updatedAt"
                     | "userId"
                     | "twoFactorEnabled"
-                    | "id";
+                    | "metadata"
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -1704,6 +1749,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -1740,7 +1786,7 @@ export declare const components: {
                     | "userAgent"
                     | "userId"
                     | "activeOrganizationId"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -1748,6 +1794,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -1792,7 +1839,7 @@ export declare const components: {
                     | "password"
                     | "createdAt"
                     | "updatedAt"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -1800,6 +1847,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -1830,7 +1878,7 @@ export declare const components: {
                     | "expiresAt"
                     | "createdAt"
                     | "updatedAt"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -1838,6 +1886,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -1860,7 +1909,7 @@ export declare const components: {
                 };
                 where?: Array<{
                   connector?: "AND" | "OR";
-                  field: "publicKey" | "privateKey" | "createdAt" | "id";
+                  field: "publicKey" | "privateKey" | "createdAt" | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -1868,6 +1917,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -1888,7 +1938,7 @@ export declare const components: {
                   logo?: null | string;
                   metadata?: null | string;
                   name?: string;
-                  slug?: null | string;
+                  slug?: string;
                 };
                 where?: Array<{
                   connector?: "AND" | "OR";
@@ -1898,7 +1948,7 @@ export declare const components: {
                     | "logo"
                     | "createdAt"
                     | "metadata"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -1906,6 +1956,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -1934,7 +1985,7 @@ export declare const components: {
                     | "userId"
                     | "role"
                     | "createdAt"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -1942,6 +1993,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -1974,7 +2026,7 @@ export declare const components: {
                     | "status"
                     | "expiresAt"
                     | "inviterId"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -1982,6 +2034,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -2004,7 +2057,7 @@ export declare const components: {
                 };
                 where?: Array<{
                   connector?: "AND" | "OR";
-                  field: "secret" | "backupCodes" | "userId" | "id";
+                  field: "secret" | "backupCodes" | "userId" | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -2012,6 +2065,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -2072,7 +2126,7 @@ export declare const components: {
                     | "updatedAt"
                     | "permissions"
                     | "metadata"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -2080,6 +2134,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -2118,7 +2173,7 @@ export declare const components: {
                     | "pollingInterval"
                     | "clientId"
                     | "scope"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -2126,6 +2181,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"
@@ -2144,9 +2200,9 @@ export declare const components: {
                 update: {
                   action?: string;
                   ipAddress?: string;
-                  severity?: "info" | "warning" | "error" | "severe";
+                  severity?: string;
                   timestamp?: string;
-                  type?: "authentication" | "authorization" | "api" | "unknown";
+                  type?: string;
                   userAgent?: string;
                   userId?: string;
                 };
@@ -2160,7 +2216,7 @@ export declare const components: {
                     | "userAgent"
                     | "severity"
                     | "type"
-                    | "id";
+                    | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -2168,6 +2224,7 @@ export declare const components: {
                     | "gte"
                     | "eq"
                     | "in"
+                    | "not_in"
                     | "ne"
                     | "contains"
                     | "starts_with"

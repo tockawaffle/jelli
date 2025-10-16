@@ -41,11 +41,41 @@ declare global {
 			user: {
 				id: string
 				name: string | null
+				metadata?: any
 				email: string
 				image?: string
 			}
 		})[]
 		teams: any | null
+	}
+
+	/**
+	 * This type is currently being used on the SettingsTabs component to pass the organization data to the components.
+	 */
+	type OrganizationType = {
+		id: string;
+		name: string;
+		createdAt: Date;
+		slug: string;
+		metadata?: any;
+		logo?: string | null | undefined;
+	} & {
+		members: (Member & {
+			user: {
+				id: string;
+				name: string;
+				email: string;
+				image: string | undefined;
+			};
+		})[];
+		currentUser: {
+			id: string;
+			name: string;
+			metadata?: any;
+			email: string;
+			image: string | undefined;
+		};
+		invitations: Invitation[];
 	}
 
 	type OrgMetadata = CreateOrganizationSchema["metadata"];

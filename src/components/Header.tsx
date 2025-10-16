@@ -41,10 +41,25 @@ export default function MinimalHeader({ user, organization }: MinimalHeaderProps
 	}
 
 	useEffect(() => {
-		if (user) {
-			setLatestProfileImage(user.image || null)
+		if (!user) return
+
+		const handleUserUpdate = (e: Event) => {
+			const event = e as CustomEvent<{
+				type: "metadata" | "profile-photo"
+				value: {
+					previousValue: string | null
+					newValue: string | null
+				}
+			}>
+
+			if (event.detail.type === "profile-photo") {
+				setLatestProfileImage(event.detail.value.newValue || null)
+			}
 		}
-	}, [user])
+
+		window.addEventListener("user-updated", handleUserUpdate)
+		return () => window.removeEventListener("user-updated", handleUserUpdate)
+	}, [])
 
 	return (
 		<header id="minimal-header" className="mx-auto z-50 w-full border-b border-border bg-background h-16 flex items-center justify-between px-4">

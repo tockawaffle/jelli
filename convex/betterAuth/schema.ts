@@ -15,6 +15,7 @@ export const tables = {
 		updatedAt: v.number(),
 		userId: v.optional(v.union(v.null(), v.string())),
 		twoFactorEnabled: v.optional(v.union(v.null(), v.boolean())),
+		metadata: v.optional(v.union(v.null(), v.any())),
 	})
 		.index("email_name", ["email", "name"])
 		.index("name", ["name"])
@@ -67,7 +68,7 @@ export const tables = {
 	}),
 	organization: defineTable({
 		name: v.string(),
-		slug: v.optional(v.union(v.null(), v.string())),
+		slug: v.string(),
 		logo: v.optional(v.union(v.null(), v.string())),
 		createdAt: v.number(),
 		metadata: v.optional(v.union(v.null(), v.string())),
@@ -80,6 +81,7 @@ export const tables = {
 		role: v.string(),
 		createdAt: v.number(),
 	})
+		.index("organizationId", ["organizationId"])
 		.index("organizationId_userId", ["organizationId", "userId"])
 		.index("userId", ["userId"])
 		.index("role", ["role"]),
@@ -91,8 +93,8 @@ export const tables = {
 		expiresAt: v.number(),
 		inviterId: v.string(),
 	})
-		.index("email_organizationId_status", ["email", "organizationId", "status"])
-		.index("organizationId_status", ["organizationId", "status"])
+		.index("organizationId", ["organizationId"])
+		.index("email", ["email"])
 		.index("role", ["role"])
 		.index("status", ["status"])
 		.index("inviterId", ["inviterId"]),
@@ -124,7 +126,6 @@ export const tables = {
 		permissions: v.optional(v.union(v.null(), v.string())),
 		metadata: v.optional(v.union(v.null(), v.string())),
 	})
-		.index("key", ["key"])
 		.index("userId", ["userId"]),
 	deviceCode: defineTable({
 		deviceCode: v.string(),
@@ -143,14 +144,10 @@ export const tables = {
 		timestamp: v.string(),
 		ipAddress: v.string(),
 		userAgent: v.string(),
-		severity: v.union(v.literal("info"), v.literal("warning"), v.literal("error"), v.literal("severe")),
-		type: v.union(v.literal("authentication"), v.literal("authorization"), v.literal("api"), v.literal("unknown"))
+		severity: v.string(),
+		type: v.string(),
 	})
-		.index("by_user_timestamp", ["userId", "timestamp"])
-		.index("by_user_action", ["userId", "action"])
-		.index("by_user_type", ["userId", "type"])
-		.index("by_user_severity", ["userId", "severity"])
-		.index("by_user_type_severity_timestamp", ["userId", "type", "severity", "timestamp"])
+		.index("userId", ["userId"]),
 };
 
 const schema = defineSchema(tables);

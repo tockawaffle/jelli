@@ -27,6 +27,7 @@ type SidebarProps = {
 				name: string;
 				email: string;
 				image: string | undefined;
+				metadata?: any;
 			};
 		})[];
 		invitations: Invitation[];

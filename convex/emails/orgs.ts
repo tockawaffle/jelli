@@ -38,16 +38,6 @@ export async function sendOrgInvitation(
 		return err(configResult.error);
 	}
 
-	console.log("[Org invitation] Sending email with the following data:", {
-		from,
-		email,
-		invitedByUsername,
-		invitedByEmail,
-		orgName,
-		orgAvatar,
-		inviteLink
-	})
-
 	const { email: validatedEmail, invitedByUsername: validatedInvitedByUsername, invitedByEmail: validatedInvitedByEmail, orgName: validatedOrgName, orgAvatar: validatedOrgAvatar, inviteLink: validatedInviteLink } = configResult.value as z.infer<typeof orgInvitationSchema>
 
 	try {

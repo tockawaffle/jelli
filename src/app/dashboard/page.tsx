@@ -23,7 +23,7 @@ export default function DashboardPage() {
 
 	const { data: userOrgs, isPending: isLoadingOrgs, refetch: refetchOrgs } = authClient.useListOrganizations();
 	const { data: currentOrg, isPending: isLoadingCurrentOrg, error: currentOrgError, refetch: refetchCurrentOrg } = authClient.useActiveOrganization();
-	const { data: session } = authClient.useSession();
+	const { data: session, refetch: refetchSession } = authClient.useSession();
 	const router = useRouter();
 	const [open, setOpen] = useState(false);
 	const [selectedAction, setSelectedAction] = useState<SidebarActions>(() => {
@@ -64,7 +64,6 @@ export default function DashboardPage() {
 			const parsed = sidebarSchema.default("home").safeParse(selectedAction);
 			if (parsed.success) {
 				const lastAction = parsed.data as SidebarActions;
-				console.log("Last action", lastAction);
 				console.debug("[DashboardPage] Saved last action to localStorage", lastAction);
 				localStorage.setItem("dashboard-last-action", lastAction);
 			} else {
@@ -85,7 +84,7 @@ export default function DashboardPage() {
 
 		return () => {
 			window.removeEventListener("storage-last-action", (e) => {
-				console.log("[DashboardPage] Unlistening for last action", e);
+				console.debug("[DashboardPage] Unlistening for last action", e);
 				const stored = localStorage.getItem("dashboard-last-action");
 				if (stored) {
 					setSelectedAction(stored as SidebarActions);
@@ -143,7 +142,19 @@ export default function DashboardPage() {
 			case "quick-actions":
 				return <QuickActions userData={{ role: activeMember?.role || "", id: activeMember?.userId || "" }} orgData={currentOrg as unknown as FullOrganization} refetchOrg={refetchCurrentOrg} />;
 			case "settings":
-				return <SettingsPage />;
+				return <SettingsPage refetchSession={refetchSession} currentOrg={
+					currentOrg && {
+						...currentOrg,
+						currentUser: {
+							id: session!.user.id,
+							name: session!.user.name || "",
+							email: session!.user.email || "",
+							image: session!.user.image || undefined,
+							// @ts-ignore: metadata is a custom field in the user table
+							metadata: session!.user.metadata || undefined,
+						}
+					} as OrganizationType
+				} />;
 			default:
 				return null;
 		}

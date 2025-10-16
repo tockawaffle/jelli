@@ -40,7 +40,6 @@ export function validateEmailConfig(type: "change_email" | "email_verification" 
 			const result = changeEmailSchema.safeParse(data)
 
 			if (!result.success) {
-				console.log(result.error.message)
 				return err({
 					type: 'INVALID_EMAIL',
 					message: 'Invalid configuration',
@@ -51,7 +50,6 @@ export function validateEmailConfig(type: "change_email" | "email_verification" 
 			return ok(result.data);
 		}
 		case "email_verification": {
-			console.log("Validating email verification", data)
 			const result = changeEmailSchema.safeParse(data)
 
 			if (!result.success) {

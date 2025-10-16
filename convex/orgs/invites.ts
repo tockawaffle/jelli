@@ -19,7 +19,7 @@ export const checkInvitation = query({
 			{
 				model: "invitation",
 				where: [
-					{ field: "id", operator: "eq", value: invitationId },
+					{ field: "_id", operator: "eq", value: invitationId },
 				]
 			}
 		)
@@ -79,7 +79,7 @@ export const CheckInviteStatus = query({
 			{
 				model: "invitation",
 				where: [
-					{ field: "id", operator: "eq", value: invitationId },
+					{ field: "_id", operator: "eq", value: invitationId },
 					{ field: "email", operator: "eq", value: email },
 					{ field: "status", operator: "eq", value: "pending" },
 				]

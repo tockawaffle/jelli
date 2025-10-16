@@ -31,6 +31,7 @@ type HomeSectionProps = {
 				name: string;
 				email: string;
 				image: string | undefined;
+				metadata?: any;
 			};
 		})[];
 		invitations: Invitation[];

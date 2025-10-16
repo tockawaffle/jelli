@@ -32,13 +32,6 @@ export async function ResetPasswordRequest(user: User, url: string, token: strin
 		return err(configResult.error);
 	}
 
-	console.log("[Reset password] Sending email with the following data:", {
-		from,
-		user,
-		url,
-		token
-	})
-
 	const { email: validatedEmail, url: validatedUrl, token: validatedToken } = configResult.value as z.infer<typeof resetPasswordSchema>
 
 	try {

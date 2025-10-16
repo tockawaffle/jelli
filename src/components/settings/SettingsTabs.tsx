@@ -1,35 +1,47 @@
 "use client"
 
 import { AnimatePresence, motion } from "framer-motion"
-import { Bell, CreditCard, Eye, Settings, Shield, User, Zap } from "lucide-react"
+import { Bell, CreditCard, Eye, Settings, Shield, User as UserIcon, Zap } from "lucide-react"
 import { useState } from "react"
-import AccountSettings from "./accountSettings"
+import AccountSettings from "./account"
 import BillingSettings from "./billingSettings"
 import IntegrationsSettings from "./integrationsSettings"
 import NotificationSettings from "./notificationSettings"
 import PrivacySettings from "./privacySettings"
 import SecuritySettings from "./securitySettings"
 
-export default function SettingsTabs() {
-	const [activeTab, setActiveTab] = useState("account")
+type ValidTabs = "account" | "security" | "privacy" | "billing" | "notifications" | "integrations"
+type Tab = { id: ValidTabs; label: string; icon: React.ElementType }
 
-	const tabs = [
-		{ id: "account", label: "Account", icon: User },
+interface SettingsTabsProps {
+	currentOrg: OrganizationType | null;
+	refetchSession: () => void;
+}
+
+export default function SettingsTabs(
+	{ currentOrg, refetchSession }: SettingsTabsProps
+) {
+	const [activeTab, setActiveTab] = useState<ValidTabs>("account")
+
+	const tabs: Tab[] = [
+		{ id: "account", label: "Account", icon: UserIcon },
 		{ id: "security", label: "Security", icon: Shield },
 		{ id: "privacy", label: "Privacy", icon: Eye },
 		{ id: "billing", label: "Billing", icon: CreditCard },
 		{ id: "notifications", label: "Notifications", icon: Bell },
 		{ id: "integrations", label: "Integrations", icon: Zap },
-	]
+	] as const satisfies Tab[]
 
-	const handleTabChange = (tab: string) => {
+	const handleTabChange = (tab: Tab["id"]) => {
 		setActiveTab(tab)
 	}
+
+	if (!currentOrg) return null
 
 	const renderContent = () => {
 		switch (activeTab) {
 			case "account":
-				return <AccountSettings />
+				return <AccountSettings currentOrg={currentOrg} refetchSession={refetchSession} />
 			case "security":
 				return <SecuritySettings />
 			case "privacy":
@@ -41,7 +53,7 @@ export default function SettingsTabs() {
 			case "integrations":
 				return <IntegrationsSettings />
 			default:
-				return <AccountSettings />
+				return <AccountSettings currentOrg={currentOrg} refetchSession={refetchSession} />
 		}
 	}
 
@@ -74,7 +86,7 @@ export default function SettingsTabs() {
 								return (
 									<motion.button
 										key={tab.id}
-										onClick={() => handleTabChange(tab.id)}
+										onClick={() => handleTabChange(tab.id as ValidTabs)}
 										className={`relative flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
 											? "text-primary bg-background shadow-sm border border-border/50"
 											: "text-muted-foreground hover:text-foreground hover:bg-background/50"
@@ -109,7 +121,7 @@ export default function SettingsTabs() {
 								return (
 									<motion.button
 										key={tab.id}
-										onClick={() => handleTabChange(tab.id)}
+										onClick={() => handleTabChange(tab.id as ValidTabs)}
 										className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${isActive
 											? "text-primary bg-primary/10 border border-primary/20"
 											: "text-muted-foreground hover:text-foreground hover:bg-muted/50"

@@ -250,7 +250,7 @@ export function ResetPasswordModal({
 				});
 			}
 		}}>
-			<DialogContent className="sm:max-w-md">
+			<DialogContent className="sm:max-w-md" showCloseButton={false}>
 				<DialogHeader>
 					<DialogTitle>Reset Password</DialogTitle>
 					<DialogDescription>

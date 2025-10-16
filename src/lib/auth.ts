@@ -1,5 +1,6 @@
 import { convex } from "@convex-dev/better-auth/plugins";
 import { betterAuth } from "better-auth";
+import { localization as errorLocalization } from "better-auth-localization";
 import { apiKey, createAuthMiddleware, deviceAuthorization, haveIBeenPwned, lastLoginMethod, openAPI, organization, twoFactor } from "better-auth/plugins";
 import { fetchAction } from "convex/nextjs";
 import { api } from "../../convex/_generated/api";
@@ -7,28 +8,14 @@ import { type GenericCtx } from "../../convex/_generated/server";
 import { authComponent } from "../../convex/auth";
 import { getFullOrganizationMiddleware } from "./helpers/middlewares";
 import { auditLogsPlugin } from "./helpers/plugins/server/audit_logs";
-import { localization as errorLocalization } from "./helpers/plugins/server/better-auth-localization";
+import { userHelpersPlugin } from "./helpers/plugins/server/user_helpers";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
 export const createAuth = (ctx: GenericCtx) =>
 	betterAuth({
 		baseURL: siteUrl,
-		trustedOrigins: async (request) => {
-			const isDev = process.env.IS_DEV == "true";
-			console.log("[BetterAuth - Internal] IS_DEV:", process.env.IS_DEV)
-			console.log("[BetterAuth - Internal] isDev:", isDev)
-			if (isDev) {
-				// Have to set this manually, ffs
-				let trustedOriginsEnv = process.env.TRUSTED_ORIGINS || "";
-				// Format the trusted origins env variable to an array
-				let trustedOrigins = trustedOriginsEnv.split(",");
-				console.log("[BetterAuth - Internal] Trusted origins:", [siteUrl, ...trustedOrigins])
-				return [siteUrl, ...trustedOrigins] as string[]; // Add all local ip addresses to the trusted origins (ALL IPS FROM ALL INTERFACES)
-			} else {
-				return [siteUrl] as string[];
-			}
-		},
+		secret: process.env.BETTER_AUTH_SECRET,
 		advanced: {
 			ipAddress: {
 				ipAddressHeaders: ["x-forwarded-for", "x-real-ip", "x-client-ip"],
@@ -40,7 +27,6 @@ export const createAuth = (ctx: GenericCtx) =>
 			enabled: true,
 			requireEmailVerification: true,
 			sendResetPassword: async ({ user, url, token, }, request) => {
-				console.log("sendResetPassword", user, url, token)
 				await fetchAction(api.emails.password.sendResetPasswordRequest, {
 					user: user as any,
 					url,
@@ -65,6 +51,55 @@ export const createAuth = (ctx: GenericCtx) =>
 			sendOnSignUp: true,
 			sendOnSignIn: false
 		},
+		socialProviders: {
+			github: {
+				clientId: process.env.GITHUB_CLIENT_ID as string,
+				clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+			},
+			google: {
+				clientId: process.env.GOOGLE_CLIENT_ID as string,
+				clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+			},
+		},
+		account: {
+			accountLinking: {
+				enabled: true,
+				trustedProviders: ["github", "google"],
+				allowDifferentEmails: true,
+				allowUnlinkingAll: false
+			}
+		},
+		user: {
+			additionalFields: {
+				metadata: {
+					type: "json",
+					properties: {
+						name: {
+							type: "json",
+							properties: {
+								firstName: {
+									required: false,
+									defaultValue: "",
+									type: "string",
+								},
+								lastName: {
+									required: false,
+									defaultValue: "",
+									type: "string",
+								}
+							}
+						},
+						bio: {
+							required: false,
+							defaultValue: "",
+							type: "string",
+						}
+					},
+					additionalProperties: true
+				}
+			}
+		},
+
 		session: {
 			// Convex plugin is bugged, it cannot retrieve the session if
 			// the session is being stored on the secondary storage.
@@ -72,6 +107,7 @@ export const createAuth = (ctx: GenericCtx) =>
 		},
 		plugins: [
 			convex(),
+			userHelpersPlugin(),
 			organization({
 				allowUserToCreateOrganization(user) {
 					return true;

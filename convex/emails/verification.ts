@@ -31,13 +31,6 @@ export async function EmailVerification(user: User, url: string, token: string, 
 		return err(configResult.error);
 	}
 
-	console.log("[Email verification] Sending email with the following data:", {
-		from,
-		user,
-		url,
-		token
-	})
-
 	const { email: validatedEmail, url: validatedUrl, token: validatedToken } = configResult.value as z.infer<typeof changeEmailSchema>
 
 	try {

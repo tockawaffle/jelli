@@ -24,7 +24,7 @@ export default function AuthPage() {
 	const type = searchParams.get("type");
 	const redirect = searchParams.get("redirect");
 	const invited = searchParams.get("invited");
-	const redirectUrl = new URL(redirect + (invited ? `&invited=${invited}` : ""));
+	const redirectUrl = (redirect && invited) ? new URL(redirect + `&invited=${invited}`) : redirect ? new URL(redirect) : "";
 
 	const { isAuthenticated, isLoading } = useConvexAuth();
 	const { theme } = useTheme();
