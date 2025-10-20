@@ -17,7 +17,6 @@ export default function RecentActivity({ orgInfo, orgMembers, todayAttendance, u
 
 	// Fetch image URLs for all members with storage IDs
 	const memberImagesQueries = members.map(m => {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
 		return useQuery(api.files.get, m.image && m.image !== "" ? { storageId: m.image as any } : "skip");
 	});
 

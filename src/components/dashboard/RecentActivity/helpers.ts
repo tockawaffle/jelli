@@ -86,7 +86,7 @@ export const buildViewFromRow = (row: Attendance, nameFallback?: string, image?:
 	}
 
 	return {
-		key: row.userId, // Use userId as key to match with members
+		key: row.userId,
 		name: nameFallback || "",
 		subtitle,
 		chipLabel,

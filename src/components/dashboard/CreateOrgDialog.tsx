@@ -517,7 +517,7 @@ function CreateOrganizationForm({ onClose }: { onClose: () => void }) {
 								</p>
 							</div>
 							{index < formSteps.length - 1 && (
-								<div className="flex-1 h-1.5 bg-muted absolute top-5 left-1/2 w-full -translate-x-0" />
+								<div className="flex-1 h-1.5 bg-muted absolute top-5 left-1/2 w-full translate-x-0" />
 							)}
 						</div>
 					))}
