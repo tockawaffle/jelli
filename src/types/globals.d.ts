@@ -90,23 +90,6 @@ declare global {
 	}
 
 	type OrgInfo = {
-		attendance: {
-			id: string;
-			org_id: string;
-			name: string;
-			role: string;
-			date: string; // DD/MM/YYYY
-			clock_in: string; // HH:MM:SS or "" when unset
-			lunch_break_out: string; // HH:MM:SS or ""
-			lunch_break_return: string; // HH:MM:SS or ""
-			clocked_out: string; // HH:MM:SS or ""
-			status: "TBR" | "CLOCKED_IN" | "LUNCH_BREAK_STARTED" | "LUNCH_BREAK_ENDED" | "CLOCKED_OUT";
-			total_work_sec: number;
-			total_break_sec: number;
-			was_late: boolean;
-			early_out: boolean;
-			updated_at_ms: number;
-		}[] | null;
 		scheduledTimeOff: {
 			id: string;
 			name: string;

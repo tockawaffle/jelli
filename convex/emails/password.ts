@@ -39,7 +39,7 @@ export async function ResetPasswordRequest(user: User, url: string, token: strin
 		const emailHtml = await render(ResetPasswordRequestTemplate({
 			url: validatedUrl,
 			token: validatedToken,
-			user: user as any
+			user
 		})).catch((error) => {
 			console.error("[Reset password] Error rendering email template:", error)
 			throw error
@@ -76,7 +76,7 @@ export async function ResetPasswordSuccess(user: User, ctx: any): Promise<EmailR
 	try {
 
 		const emailHtml = await render(ResetPasswordSuccessTemplate({
-			user: user as any
+			user
 		})).catch((error) => {
 			console.error("[Reset password] Error rendering email template:", error)
 			throw error

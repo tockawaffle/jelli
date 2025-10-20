@@ -10,9 +10,12 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { api } from "@/convex/_generated/api"
+import { Id } from "@/convex/_generated/dataModel"
 import { authClient } from "@/lib/auth-client"
 import { User } from "better-auth"
 import { Organization } from "better-auth/plugins/organization"
+import { useQuery } from "convex/react"
 import { BellIcon, CommandIcon, LogOutIcon, MoonIcon, Search, SearchIcon, SunIcon, User2Icon } from "lucide-react"
 import { useTheme } from "next-themes"
 import Image from "next/image"
@@ -23,7 +26,7 @@ import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 
 type MinimalHeaderProps = {
-	user: User | null
+	user: User & { metadata: { photoStorageId: Id<"_storage"> | undefined } } | null
 	organization: Organization | null
 }
 
@@ -38,6 +41,16 @@ export default function MinimalHeader({ user, organization }: MinimalHeaderProps
 	const handleSignOut = async () => {
 		await authClient.signOut()
 		router.refresh()
+	}
+
+	const photoStorageId = user?.image as Id<"_storage"> | undefined ?? undefined;
+	if (photoStorageId) {
+		const photoUrl = useQuery(api.files.get, photoStorageId ? { storageId: photoStorageId } : "skip")
+		useEffect(() => {
+			if (photoUrl) {
+				setLatestProfileImage(photoUrl.url)
+			}
+		}, [photoUrl])
 	}
 
 	useEffect(() => {

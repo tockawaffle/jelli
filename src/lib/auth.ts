@@ -1,12 +1,13 @@
 import { convex } from "@convex-dev/better-auth/plugins";
 import { betterAuth } from "better-auth";
 import { localization as errorLocalization } from "better-auth-localization";
-import { apiKey, createAuthMiddleware, deviceAuthorization, haveIBeenPwned, lastLoginMethod, openAPI, organization, twoFactor } from "better-auth/plugins";
+import { createAuthMiddleware, deviceAuthorization, haveIBeenPwned, lastLoginMethod, openAPI, organization, twoFactor } from "better-auth/plugins";
 import { fetchAction } from "convex/nextjs";
 import { api } from "../../convex/_generated/api";
 import { type GenericCtx } from "../../convex/_generated/server";
 import { authComponent } from "../../convex/auth";
 import { getFullOrganizationMiddleware } from "./helpers/middlewares";
+import { attendancePlugin } from "./helpers/plugins/server/attendance";
 import { auditLogsPlugin } from "./helpers/plugins/server/audit_logs";
 import { userHelpersPlugin } from "./helpers/plugins/server/user_helpers";
 
@@ -93,8 +94,13 @@ export const createAuth = (ctx: GenericCtx) =>
 							required: false,
 							defaultValue: "",
 							type: "string",
+						},
+						lunchTimeStart: {
+							required: false,
+							type: "string",
 						}
 					},
+					input: false,
 					additionalProperties: true
 				}
 			}
@@ -143,14 +149,6 @@ export const createAuth = (ctx: GenericCtx) =>
 			haveIBeenPwned(),
 			twoFactor(),
 			openAPI(),
-			apiKey({
-				enableMetadata: true,
-				rateLimit: {
-					enabled: true,
-					maxRequests: 1000,
-					timeWindow: 1000 * 60 * 60 * 24,
-				}
-			}),
 			lastLoginMethod(),
 			deviceAuthorization({
 				expiresIn: "1h",
@@ -174,7 +172,8 @@ export const createAuth = (ctx: GenericCtx) =>
 						PASSWORD_COMPROMISED: "Essa senha foi comprometida, por favor, utilize uma senha diferente",
 					}
 				}
-			})
+			}),
+			attendancePlugin()
 		],
 		rateLimit: {
 			enabled: true,

@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
+import { api } from "@/convex/_generated/api"
+import type { Id } from "@/convex/_generated/dataModel"
 import { authClient } from "@/lib/auth-client"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery } from "convex/react"
@@ -15,8 +17,6 @@ import { Camera, Loader2, Pencil } from "lucide-react"
 import { useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
-import { api } from "../../../../convex/_generated/api"
-import type { Id } from "../../../../convex/_generated/dataModel"
 import { PHOTO_UPLOAD_CONFIG } from "./constants"
 import { type ProfileFormValues, profileFormSchema } from "./schemas"
 import { fadeInUp, getUserInitials } from "./utils"
@@ -33,7 +33,7 @@ export function ProfileForm({ currentOrg, refetchSession }: ProfileFormProps) {
 	const generateUploadUrl = useMutation(api.files.generateUploadUrl)
 
 	// Get the photo URL if storageId exists
-	const photoStorageId = currentOrg.currentUser.metadata?.photoStorageId as Id<"_storage"> | undefined
+	const photoStorageId = currentOrg.currentUser.image as Id<"_storage"> | undefined
 	const photoUrl = useQuery(api.files.get, photoStorageId ? { storageId: photoStorageId } : "skip")
 
 	const profileForm = useForm<ProfileFormValues>({
@@ -156,7 +156,7 @@ export function ProfileForm({ currentOrg, refetchSession }: ProfileFormProps) {
 								<Avatar className="h-16 w-16 ring-2 ring-border/50">
 									<AvatarImage
 										loading="lazy"
-										src={photoPreview || photoUrl || currentOrg.currentUser.image || "/placeholder-user.jpg"}
+										src={photoPreview || photoUrl?.url || "/placeholder-user.jpg"}
 										alt="Profile"
 									/>
 									<AvatarFallback className="bg-primary/10 text-primary font-semibold">

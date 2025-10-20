@@ -86,7 +86,6 @@ export const getOrgMembersInfo = query({
 		const limit = Math.max(1, Math.min(args.limit ?? 50, 200));
 
 		const data: OrgInfo = {
-			attendance: [],
 			scheduledTimeOff: [],
 			members: {
 				continueCursor: "[]",
@@ -103,18 +102,6 @@ export const getOrgMembersInfo = query({
 
 		for (const info of args.info) {
 			switch (info) {
-				case "attendance":
-					if (
-						["owner", "admin", "manager"].includes(role)
-					) {
-						promises.attendance = ctx.db
-							.query("attendance")
-							.withIndex("by_org_id")
-							.filter(q => q.eq(q.field("org_id"), args.orgId))
-							.collect()
-							.then(rows => rows.slice(0, limit));
-					}
-					break;
 				case "scheduledTimeOff":
 					if (
 						["owner", "admin", "manager"].includes(role)
@@ -171,7 +158,7 @@ export const getOrgMembersInfo = query({
 		const resolvedValues = await Promise.all(entryList.map(([, p]) => p));
 		for (let i = 0; i < entryList.length; i++) {
 			const [key] = entryList[i];
-			data[key] = resolvedValues[i] as any;
+			data[key] = resolvedValues[i]
 		}
 
 		return data;

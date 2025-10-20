@@ -2,11 +2,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { attendanceSchema } from "@/lib/helpers/plugins/server/attendance/schemas/zod";
 import dayjs from "dayjs";
+import { z } from "zod";
+
+type Attendance = z.infer<typeof attendanceSchema>;
 
 type TeamStatusProps = {
 	orgInfo?: OrgInfo | null;
 	orgMembers?: { userId: string; name: string | null; role?: string | null; image?: string | null }[];
+	todayAttendance: Attendance[];
 };
 
 type StatusKey = "active" | "break" | "offline";
@@ -17,27 +22,32 @@ const statusMeta: Record<StatusKey, { label: string; dot: string; badgeClass: st
 	offline: { label: "Offline", dot: "bg-muted", badgeClass: "bg-muted text-foreground border-border" },
 };
 
-export default function TeamStatus({ orgInfo, orgMembers = [] }: TeamStatusProps) {
-	const todayRows = (orgInfo?.attendance ?? []).filter((row) =>
-		dayjs(row.date, "DD/MM/YYYY").isSame(dayjs(), "day")
-	);
+export default function TeamStatus({ orgInfo, orgMembers = [], todayAttendance }: TeamStatusProps) {
+	const attendanceByUserId = new Map<string, Attendance>();
+	for (const row of todayAttendance) attendanceByUserId.set(row.userId, row);
 
-	const attendanceByUserId = new Map<string, (typeof todayRows)[number]>();
-	for (const row of todayRows) attendanceByUserId.set(row.id, row);
+	const isValidDate = (dateString?: string) => {
+		if (!dateString || dateString === "" || dateString === "0") return false;
+		const date = dayjs(dateString);
+		return date.isValid() && date.year() > 1970;
+	};
 
-	const to12h = (hhmmss?: string) => (hhmmss ? dayjs(hhmmss, "HH:mm:ss").format("h:mm A") : undefined);
+	const to12h = (isoString?: string) => {
+		if (!isValidDate(isoString)) return undefined;
+		return dayjs(isoString).format("h:mm A");
+	};
 
-	const derive = (row?: (typeof todayRows)[number]): { status: StatusKey; when?: string; timeLabel?: string } => {
+	const derive = (row?: Attendance): { status: StatusKey; when?: string; timeLabel?: string } => {
 		if (!row) return { status: "offline", timeLabel: "Not clocked in" };
 		switch (row.status) {
 			case "CLOCKED_IN":
-				return { status: "active", when: row.clock_in, timeLabel: to12h(row.clock_in) };
+				return { status: "active", when: row.clockIn, timeLabel: to12h(row.clockIn) };
 			case "LUNCH_BREAK_STARTED":
-				return { status: "break", when: row.lunch_break_out, timeLabel: to12h(row.lunch_break_out) };
+				return { status: "break", when: row.lunchBreakOut, timeLabel: to12h(row.lunchBreakOut) };
 			case "LUNCH_BREAK_ENDED":
-				return { status: "active", when: row.lunch_break_return, timeLabel: to12h(row.lunch_break_return) };
+				return { status: "active", when: row.lunchBreakReturn, timeLabel: to12h(row.lunchBreakReturn) };
 			case "CLOCKED_OUT":
-				return { status: "offline", when: row.clocked_out, timeLabel: to12h(row.clocked_out) };
+				return { status: "offline", when: row.clockOut, timeLabel: to12h(row.clockOut) };
 			case "TBR":
 			default:
 				return { status: "offline", timeLabel: "Not clocked in" };
@@ -54,7 +64,7 @@ export default function TeamStatus({ orgInfo, orgMembers = [] }: TeamStatusProps
 			status: d.status as StatusKey,
 			timeText: d.timeLabel,
 			image: m.image,
-			sortKey: row?.updated_at_ms ?? 0,
+			sortKey: row?.timesUpdated ?? 0,
 		};
 	});
 

@@ -15,7 +15,20 @@ export const tables = {
 		updatedAt: v.number(),
 		userId: v.optional(v.union(v.null(), v.string())),
 		twoFactorEnabled: v.optional(v.union(v.null(), v.boolean())),
-		metadata: v.optional(v.union(v.null(), v.any())),
+		metadata: v.optional(
+			v.union(
+				v.null(),
+				v.object({}), // empty object
+				v.object({
+					name: v.object({
+						firstName: v.string(),
+						lastName: v.string(),
+					}),
+					bio: v.string(),
+					isOnline: v.optional(v.union(v.null(), v.boolean()))
+				})
+			)
+		),
 	})
 		.index("email_name", ["email", "name"])
 		.index("name", ["name"])
@@ -82,7 +95,6 @@ export const tables = {
 		createdAt: v.number(),
 	})
 		.index("organizationId", ["organizationId"])
-		.index("organizationId_userId", ["organizationId", "userId"])
 		.index("userId", ["userId"])
 		.index("role", ["role"]),
 	invitation: defineTable({
@@ -102,29 +114,6 @@ export const tables = {
 		secret: v.string(),
 		backupCodes: v.string(),
 		userId: v.string(),
-	})
-		.index("userId", ["userId"]),
-	apikey: defineTable({
-		name: v.optional(v.union(v.null(), v.string())),
-		start: v.optional(v.union(v.null(), v.string())),
-		prefix: v.optional(v.union(v.null(), v.string())),
-		key: v.string(),
-		userId: v.string(),
-		refillInterval: v.optional(v.union(v.null(), v.number())),
-		refillAmount: v.optional(v.union(v.null(), v.number())),
-		lastRefillAt: v.optional(v.union(v.null(), v.number())),
-		enabled: v.optional(v.union(v.null(), v.boolean())),
-		rateLimitEnabled: v.optional(v.union(v.null(), v.boolean())),
-		rateLimitTimeWindow: v.optional(v.union(v.null(), v.number())),
-		rateLimitMax: v.optional(v.union(v.null(), v.number())),
-		requestCount: v.optional(v.union(v.null(), v.number())),
-		remaining: v.optional(v.union(v.null(), v.number())),
-		lastRequest: v.optional(v.union(v.null(), v.number())),
-		expiresAt: v.optional(v.union(v.null(), v.number())),
-		createdAt: v.number(),
-		updatedAt: v.number(),
-		permissions: v.optional(v.union(v.null(), v.string())),
-		metadata: v.optional(v.union(v.null(), v.string())),
 	})
 		.index("userId", ["userId"]),
 	deviceCode: defineTable({
@@ -148,6 +137,25 @@ export const tables = {
 		type: v.string(),
 	})
 		.index("userId", ["userId"]),
+	attendance: defineTable({
+		userId: v.string(),
+		orgId: v.string(),
+		role: v.string(),
+		date: v.string(),
+		clockIn: v.string(),
+		lunchBreakOut: v.string(),
+		lunchBreakReturn: v.string(),
+		clockOut: v.string(),
+		status: v.string(),
+		totalWorkSeconds: v.number(),
+		totalBreakSeconds: v.number(),
+		wasLate: v.boolean(),
+		earlyOut: v.boolean(),
+		timesUpdated: v.number(),
+		operation: v.array(v.string()),
+	})
+		.index("userId", ["userId"])
+		.index("orgId", ["orgId"]),
 };
 
 const schema = defineSchema(tables);

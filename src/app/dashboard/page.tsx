@@ -109,7 +109,7 @@ export default function DashboardPage() {
 	if (isLoadingOrgs || isLoadingCurrentOrg || userOrgs?.length === 0 || isActiveMemberPending) {
 		return (
 			<div className="h-screen w-screen bg-background">
-				<MinimalHeader user={session?.user || null} organization={null} />
+				<MinimalHeader user={session?.user as any || null} organization={null} />
 				<DashboardSkeleton />
 				<CreateOrganizationDialog open={userOrgs?.length === 0} onClose={() => { refetchOrgs() }} hasNoOrgs={userOrgs?.length === 0} />
 			</div>
@@ -163,7 +163,7 @@ export default function DashboardPage() {
 	return (
 		<div className="flex flex-col h-screen w-screen bg-background">
 			<CreateOrganizationDialog open={open} onClose={() => { setOpen(false) }} hasNoOrgs={userOrgs?.length === 0} />
-			<MinimalHeader user={session?.user || null} organization={currentOrg || userOrgs?.[0] || null} />
+			<MinimalHeader user={session?.user as any || null} organization={currentOrg || userOrgs?.[0] || null} />
 			<div className="flex flex-1 overflow-hidden">
 				<DashboardSidebar
 					userOrgs={userOrgs}

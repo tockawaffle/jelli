@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { authClient } from "@/lib/auth-client"
+import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
 import { Check, Chrome, GithubIcon, Loader2 } from "lucide-react"
 import { type JSX, useCallback, useEffect, useState } from "react"
@@ -186,7 +187,11 @@ export function ConnectedAccounts() {
 								<motion.div
 									key={provider.id}
 									{...fadeInLeft((connectedAccounts.length + index) * 0.1)}
-									className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border border-border/50 rounded-lg bg-background/30 hover:bg-background/50 transition-colors"
+									className={cn(
+										"flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border border-border/50 rounded-lg bg-background/30 hover:bg-background/50 transition-colors",
+										// This is temporary until we implement Google OAuth
+										provider.id === "google" && "opacity-50 cursor-not-allowed bg-secondary/50 hover:bg-secondary/50"
+									)}
 								>
 									<div className="flex items-center gap-3 min-w-0 flex-1">
 										<div className="h-10 w-10 rounded-md bg-muted/50 flex items-center justify-center shrink-0">
@@ -203,16 +208,19 @@ export function ConnectedAccounts() {
 											size="sm"
 											className="text-xs hover:bg-muted/50"
 											onClick={() => handleLinkAccount(provider.id)}
-											disabled={actionLoading === provider.id}
+											disabled={actionLoading === provider.id || provider.id === "google"}
 										>
-											{actionLoading === provider.id ? (
-												<>
-													<Loader2 className="h-3 w-3 mr-1 animate-spin" />
-													Connecting...
-												</>
-											) : (
-												"Connect"
-											)}
+											{
+												// If Google, show "To be implemented"
+												actionLoading === provider.id ? (
+													<>
+														<Loader2 className="h-3 w-3 mr-1 animate-spin" />
+														Connecting...
+													</>
+												) : (
+													provider.id === "google" ? "To be implemented" : "Connect"
+												)
+											}
 										</Button>
 									</div>
 								</motion.div>

@@ -38,7 +38,7 @@ export async function EmailVerification(user: User, url: string, token: string, 
 		const emailHtml = await render(EmailVerificationTemplate({
 			url: validatedUrl,
 			token: validatedToken,
-			user: user as any
+			user
 		})).catch((error) => {
 			console.error("[Email verification] Error rendering email template:", error)
 			throw error

@@ -23,7 +23,6 @@ import type * as emails_validator from "../emails/validator.js";
 import type * as emails_verification from "../emails/verification.js";
 import type * as files from "../files.js";
 import type * as http from "../http.js";
-import type * as orgs_attendance from "../orgs/attendance.js";
 import type * as orgs_get from "../orgs/get.js";
 import type * as orgs_invites from "../orgs/invites.js";
 import type * as user_verify from "../user/verify.js";
@@ -58,7 +57,6 @@ declare const fullApi: ApiFromModules<{
   "emails/verification": typeof emails_verification;
   files: typeof files;
   http: typeof http;
-  "orgs/attendance": typeof orgs_attendance;
   "orgs/get": typeof orgs_get;
   "orgs/invites": typeof orgs_invites;
   "user/verify": typeof user_verify;
@@ -88,7 +86,14 @@ export declare const components: {
                   email: string;
                   emailVerified: boolean;
                   image?: null | string;
-                  metadata?: null | any;
+                  metadata?:
+                    | null
+                    | {}
+                    | {
+                        bio: string;
+                        isOnline?: null | boolean;
+                        name: { firstName: string; lastName: string };
+                      };
                   name: string;
                   twoFactorEnabled?: null | boolean;
                   updatedAt: number;
@@ -180,31 +185,6 @@ export declare const components: {
               }
             | {
                 data: {
-                  createdAt: number;
-                  enabled?: null | boolean;
-                  expiresAt?: null | number;
-                  key: string;
-                  lastRefillAt?: null | number;
-                  lastRequest?: null | number;
-                  metadata?: null | string;
-                  name?: null | string;
-                  permissions?: null | string;
-                  prefix?: null | string;
-                  rateLimitEnabled?: null | boolean;
-                  rateLimitMax?: null | number;
-                  rateLimitTimeWindow?: null | number;
-                  refillAmount?: null | number;
-                  refillInterval?: null | number;
-                  remaining?: null | number;
-                  requestCount?: null | number;
-                  start?: null | string;
-                  updatedAt: number;
-                  userId: string;
-                };
-                model: "apikey";
-              }
-            | {
-                data: {
                   clientId?: null | string;
                   deviceCode: string;
                   expiresAt: number;
@@ -228,6 +208,26 @@ export declare const components: {
                   userId: string;
                 };
                 model: "auditLogs";
+              }
+            | {
+                data: {
+                  clockIn: string;
+                  clockOut: string;
+                  date: string;
+                  earlyOut: boolean;
+                  lunchBreakOut: string;
+                  lunchBreakReturn: string;
+                  operation: Array<string>;
+                  orgId: string;
+                  role: string;
+                  status: string;
+                  timesUpdated: number;
+                  totalBreakSeconds: number;
+                  totalWorkSeconds: number;
+                  userId: string;
+                  wasLate: boolean;
+                };
+                model: "attendance";
               };
           onCreateHandle?: string;
           select?: Array<string>;
@@ -530,53 +530,6 @@ export declare const components: {
                 }>;
               }
             | {
-                model: "apikey";
-                where?: Array<{
-                  connector?: "AND" | "OR";
-                  field:
-                    | "name"
-                    | "start"
-                    | "prefix"
-                    | "key"
-                    | "userId"
-                    | "refillInterval"
-                    | "refillAmount"
-                    | "lastRefillAt"
-                    | "enabled"
-                    | "rateLimitEnabled"
-                    | "rateLimitTimeWindow"
-                    | "rateLimitMax"
-                    | "requestCount"
-                    | "remaining"
-                    | "lastRequest"
-                    | "expiresAt"
-                    | "createdAt"
-                    | "updatedAt"
-                    | "permissions"
-                    | "metadata"
-                    | "_id";
-                  operator?:
-                    | "lt"
-                    | "lte"
-                    | "gt"
-                    | "gte"
-                    | "eq"
-                    | "in"
-                    | "not_in"
-                    | "ne"
-                    | "contains"
-                    | "starts_with"
-                    | "ends_with";
-                  value:
-                    | string
-                    | number
-                    | boolean
-                    | Array<string>
-                    | Array<number>
-                    | null;
-                }>;
-              }
-            | {
                 model: "deviceCode";
                 where?: Array<{
                   connector?: "AND" | "OR";
@@ -624,6 +577,48 @@ export declare const components: {
                     | "userAgent"
                     | "severity"
                     | "type"
+                    | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "attendance";
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field:
+                    | "userId"
+                    | "orgId"
+                    | "role"
+                    | "date"
+                    | "clockIn"
+                    | "lunchBreakOut"
+                    | "lunchBreakReturn"
+                    | "clockOut"
+                    | "status"
+                    | "totalWorkSeconds"
+                    | "totalBreakSeconds"
+                    | "wasLate"
+                    | "earlyOut"
+                    | "timesUpdated"
+                    | "operation"
                     | "_id";
                   operator?:
                     | "lt"
@@ -954,53 +949,6 @@ export declare const components: {
                 }>;
               }
             | {
-                model: "apikey";
-                where?: Array<{
-                  connector?: "AND" | "OR";
-                  field:
-                    | "name"
-                    | "start"
-                    | "prefix"
-                    | "key"
-                    | "userId"
-                    | "refillInterval"
-                    | "refillAmount"
-                    | "lastRefillAt"
-                    | "enabled"
-                    | "rateLimitEnabled"
-                    | "rateLimitTimeWindow"
-                    | "rateLimitMax"
-                    | "requestCount"
-                    | "remaining"
-                    | "lastRequest"
-                    | "expiresAt"
-                    | "createdAt"
-                    | "updatedAt"
-                    | "permissions"
-                    | "metadata"
-                    | "_id";
-                  operator?:
-                    | "lt"
-                    | "lte"
-                    | "gt"
-                    | "gte"
-                    | "eq"
-                    | "in"
-                    | "not_in"
-                    | "ne"
-                    | "contains"
-                    | "starts_with"
-                    | "ends_with";
-                  value:
-                    | string
-                    | number
-                    | boolean
-                    | Array<string>
-                    | Array<number>
-                    | null;
-                }>;
-              }
-            | {
                 model: "deviceCode";
                 where?: Array<{
                   connector?: "AND" | "OR";
@@ -1069,6 +1017,48 @@ export declare const components: {
                     | Array<number>
                     | null;
                 }>;
+              }
+            | {
+                model: "attendance";
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field:
+                    | "userId"
+                    | "orgId"
+                    | "role"
+                    | "date"
+                    | "clockIn"
+                    | "lunchBreakOut"
+                    | "lunchBreakReturn"
+                    | "clockOut"
+                    | "status"
+                    | "totalWorkSeconds"
+                    | "totalBreakSeconds"
+                    | "wasLate"
+                    | "earlyOut"
+                    | "timesUpdated"
+                    | "operation"
+                    | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
               };
           onDeleteHandle?: string;
         },
@@ -1089,9 +1079,9 @@ export declare const components: {
             | "member"
             | "invitation"
             | "twoFactor"
-            | "apikey"
             | "deviceCode"
-            | "auditLogs";
+            | "auditLogs"
+            | "attendance";
           offset?: number;
           paginationOpts: {
             cursor: string | null;
@@ -1142,9 +1132,9 @@ export declare const components: {
             | "member"
             | "invitation"
             | "twoFactor"
-            | "apikey"
             | "deviceCode"
-            | "auditLogs";
+            | "auditLogs"
+            | "attendance";
           select?: Array<string>;
           where?: Array<{
             connector?: "AND" | "OR";
@@ -1184,7 +1174,14 @@ export declare const components: {
                   email?: string;
                   emailVerified?: boolean;
                   image?: null | string;
-                  metadata?: null | any;
+                  metadata?:
+                    | null
+                    | {}
+                    | {
+                        bio: string;
+                        isOnline?: null | boolean;
+                        name: { firstName: string; lastName: string };
+                      };
                   name?: string;
                   twoFactorEnabled?: null | boolean;
                   updatedAt?: number;
@@ -1541,75 +1538,6 @@ export declare const components: {
                 }>;
               }
             | {
-                model: "apikey";
-                update: {
-                  createdAt?: number;
-                  enabled?: null | boolean;
-                  expiresAt?: null | number;
-                  key?: string;
-                  lastRefillAt?: null | number;
-                  lastRequest?: null | number;
-                  metadata?: null | string;
-                  name?: null | string;
-                  permissions?: null | string;
-                  prefix?: null | string;
-                  rateLimitEnabled?: null | boolean;
-                  rateLimitMax?: null | number;
-                  rateLimitTimeWindow?: null | number;
-                  refillAmount?: null | number;
-                  refillInterval?: null | number;
-                  remaining?: null | number;
-                  requestCount?: null | number;
-                  start?: null | string;
-                  updatedAt?: number;
-                  userId?: string;
-                };
-                where?: Array<{
-                  connector?: "AND" | "OR";
-                  field:
-                    | "name"
-                    | "start"
-                    | "prefix"
-                    | "key"
-                    | "userId"
-                    | "refillInterval"
-                    | "refillAmount"
-                    | "lastRefillAt"
-                    | "enabled"
-                    | "rateLimitEnabled"
-                    | "rateLimitTimeWindow"
-                    | "rateLimitMax"
-                    | "requestCount"
-                    | "remaining"
-                    | "lastRequest"
-                    | "expiresAt"
-                    | "createdAt"
-                    | "updatedAt"
-                    | "permissions"
-                    | "metadata"
-                    | "_id";
-                  operator?:
-                    | "lt"
-                    | "lte"
-                    | "gt"
-                    | "gte"
-                    | "eq"
-                    | "in"
-                    | "not_in"
-                    | "ne"
-                    | "contains"
-                    | "starts_with"
-                    | "ends_with";
-                  value:
-                    | string
-                    | number
-                    | boolean
-                    | Array<string>
-                    | Array<number>
-                    | null;
-                }>;
-              }
-            | {
                 model: "deviceCode";
                 update: {
                   clientId?: null | string;
@@ -1677,6 +1605,65 @@ export declare const components: {
                     | "userAgent"
                     | "severity"
                     | "type"
+                    | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "attendance";
+                update: {
+                  clockIn?: string;
+                  clockOut?: string;
+                  date?: string;
+                  earlyOut?: boolean;
+                  lunchBreakOut?: string;
+                  lunchBreakReturn?: string;
+                  operation?: Array<string>;
+                  orgId?: string;
+                  role?: string;
+                  status?: string;
+                  timesUpdated?: number;
+                  totalBreakSeconds?: number;
+                  totalWorkSeconds?: number;
+                  userId?: string;
+                  wasLate?: boolean;
+                };
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field:
+                    | "userId"
+                    | "orgId"
+                    | "role"
+                    | "date"
+                    | "clockIn"
+                    | "lunchBreakOut"
+                    | "lunchBreakReturn"
+                    | "clockOut"
+                    | "status"
+                    | "totalWorkSeconds"
+                    | "totalBreakSeconds"
+                    | "wasLate"
+                    | "earlyOut"
+                    | "timesUpdated"
+                    | "operation"
                     | "_id";
                   operator?:
                     | "lt"
@@ -1723,7 +1710,14 @@ export declare const components: {
                   email?: string;
                   emailVerified?: boolean;
                   image?: null | string;
-                  metadata?: null | any;
+                  metadata?:
+                    | null
+                    | {}
+                    | {
+                        bio: string;
+                        isOnline?: null | boolean;
+                        name: { firstName: string; lastName: string };
+                      };
                   name?: string;
                   twoFactorEnabled?: null | boolean;
                   updatedAt?: number;
@@ -2080,75 +2074,6 @@ export declare const components: {
                 }>;
               }
             | {
-                model: "apikey";
-                update: {
-                  createdAt?: number;
-                  enabled?: null | boolean;
-                  expiresAt?: null | number;
-                  key?: string;
-                  lastRefillAt?: null | number;
-                  lastRequest?: null | number;
-                  metadata?: null | string;
-                  name?: null | string;
-                  permissions?: null | string;
-                  prefix?: null | string;
-                  rateLimitEnabled?: null | boolean;
-                  rateLimitMax?: null | number;
-                  rateLimitTimeWindow?: null | number;
-                  refillAmount?: null | number;
-                  refillInterval?: null | number;
-                  remaining?: null | number;
-                  requestCount?: null | number;
-                  start?: null | string;
-                  updatedAt?: number;
-                  userId?: string;
-                };
-                where?: Array<{
-                  connector?: "AND" | "OR";
-                  field:
-                    | "name"
-                    | "start"
-                    | "prefix"
-                    | "key"
-                    | "userId"
-                    | "refillInterval"
-                    | "refillAmount"
-                    | "lastRefillAt"
-                    | "enabled"
-                    | "rateLimitEnabled"
-                    | "rateLimitTimeWindow"
-                    | "rateLimitMax"
-                    | "requestCount"
-                    | "remaining"
-                    | "lastRequest"
-                    | "expiresAt"
-                    | "createdAt"
-                    | "updatedAt"
-                    | "permissions"
-                    | "metadata"
-                    | "_id";
-                  operator?:
-                    | "lt"
-                    | "lte"
-                    | "gt"
-                    | "gte"
-                    | "eq"
-                    | "in"
-                    | "not_in"
-                    | "ne"
-                    | "contains"
-                    | "starts_with"
-                    | "ends_with";
-                  value:
-                    | string
-                    | number
-                    | boolean
-                    | Array<string>
-                    | Array<number>
-                    | null;
-                }>;
-              }
-            | {
                 model: "deviceCode";
                 update: {
                   clientId?: null | string;
@@ -2216,6 +2141,65 @@ export declare const components: {
                     | "userAgent"
                     | "severity"
                     | "type"
+                    | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "attendance";
+                update: {
+                  clockIn?: string;
+                  clockOut?: string;
+                  date?: string;
+                  earlyOut?: boolean;
+                  lunchBreakOut?: string;
+                  lunchBreakReturn?: string;
+                  operation?: Array<string>;
+                  orgId?: string;
+                  role?: string;
+                  status?: string;
+                  timesUpdated?: number;
+                  totalBreakSeconds?: number;
+                  totalWorkSeconds?: number;
+                  userId?: string;
+                  wasLate?: boolean;
+                };
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field:
+                    | "userId"
+                    | "orgId"
+                    | "role"
+                    | "date"
+                    | "clockIn"
+                    | "lunchBreakOut"
+                    | "lunchBreakReturn"
+                    | "clockOut"
+                    | "status"
+                    | "totalWorkSeconds"
+                    | "totalBreakSeconds"
+                    | "wasLate"
+                    | "earlyOut"
+                    | "timesUpdated"
+                    | "operation"
                     | "_id";
                   operator?:
                     | "lt"

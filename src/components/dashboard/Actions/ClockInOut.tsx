@@ -3,12 +3,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { authClient } from "@/lib/auth-client";
-import { useQuery } from "convex/react";
 import dayjs from "dayjs";
 import { motion } from "framer-motion";
 import { AlertCircle, CheckCircle2, Clock, FileTextIcon, MapPin, QrCode, Settings, SmartphoneNfc } from "lucide-react";
 import React from "react";
-import { api } from "../../../../convex/_generated/api";
 
 type ControlledProps = {
 	open: boolean;
@@ -23,7 +21,16 @@ export default function ClockInOutDialog({ open, onOpenChange, error, userRole, 
 	const [method, setMethod] = React.useState<"qr" | "request" | "nfc">("request");
 	const [requestType, setRequestType] = React.useState<"clock-in" | "clock-out" | "lunch-break-start" | "lunch-break-end" | "time-off">("clock-in");
 	const { data: activeOrg } = authClient.useActiveOrganization();
-	const todayRow = useQuery(api.orgs.attendance.getTodayForCurrentUser, { orgId: activeOrg?.id ?? "" });
+	const todayRow = authClient.getAttendance({
+		orgId: activeOrg?.id ?? "",
+		dateInterval: {
+			start: dayjs().startOf("day").toDate(),
+			end: dayjs().endOf("day").toDate(),
+		},
+		limit: 1,
+		offset: 0,
+		sort: "desc",
+	})
 	type LocationStatus = "idle" | "checking" | "granted" | "denied" | "error";
 	const [locationStatus, setLocationStatus] = React.useState<LocationStatus>("idle");
 	const permissionStateRef = React.useRef<"granted" | "denied" | "prompt" | null>(null);

@@ -4,6 +4,8 @@ import { StatsList } from "@/components/dashboard/StatsList";
 import TeamStatus from "@/components/dashboard/TeamStatus";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { authClient } from "@/lib/auth-client";
+import { attendanceSchema } from "@/lib/helpers/plugins/server/attendance/schemas/zod";
 import { Session, User } from "better-auth";
 import { Invitation, Member } from "better-auth/plugins/organization";
 import { useQuery } from "convex/react";
@@ -11,7 +13,8 @@ import dayjs from "dayjs";
 import { motion } from "framer-motion";
 import { Activity, BarChart, Calendar, Clock, LucideIcon, Moon, Sparkles, Sun, SunDim, Users } from "lucide-react";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { z } from "zod";
 import { api } from "../../../convex/_generated/api";
 
 // FullOrganization type is defined in globals.d.ts
@@ -44,6 +47,9 @@ type HomeSectionProps = {
 	router: AppRouterInstance,
 	refetchOrg: () => void,
 }
+
+// Infer from Zod
+type Attendance = z.infer<typeof attendanceSchema>;
 
 export default function HomeSection({ currentOrg, session, activeMember, refetchOrg }: HomeSectionProps) {
 	if (!session) return null;
@@ -80,15 +86,61 @@ export default function HomeSection({ currentOrg, session, activeMember, refetch
 
 	const { user } = session;
 
-
-
 	const userRole = useMemo(() => {
-		return activeMember?.role;
+		const role = activeMember?.role;
+		console.log("Home - activeMember:", activeMember, "userRole:", role);
+		return role;
 	}, [activeMember]);
+
+	const [todayAttendance, setTodayAttendance] = useState<Attendance[] | null>(null);
+	const [yesterdayAttendance, setYesterdayAttendance] = useState<Attendance[] | null>(null);
+
+	useEffect(() => {
+		const fetchAttendance = async () => {
+			try {
+				await authClient.getAttendance(
+					{
+						orgId: currentOrg.id,
+						dateInterval: {
+							start: dayjs().subtract(1, "day").startOf("day").toDate(),
+							end: dayjs().endOf("day").toDate(),
+						},
+						limit: 100,
+						offset: 0,
+						sort: "desc",
+						ids: currentOrg.members.map(m => m.userId),
+					},
+					{
+						onSuccess: (data) => {
+							// Now the response is cleaner: data.data is directly the attendance array
+							const attendanceArray = (data.data as Attendance[]) || [];
+
+							// Separate today and yesterday attendance
+							const today = dayjs().startOf('day');
+							const todayRecords = attendanceArray.filter(a => dayjs(a.date).isSame(today, 'day'));
+							const yesterdayRecords = attendanceArray.filter(a => dayjs(a.date).isSame(today.subtract(1, 'day'), 'day'));
+
+							setTodayAttendance(todayRecords);
+							setYesterdayAttendance(yesterdayRecords);
+						},
+						onError: (error) => {
+							console.error("Failed to fetch attendance:", error);
+						},
+					}
+				)
+			} catch (error) {
+				console.error("Failed to fetch attendance:", error);
+			}
+		};
+
+		if (currentOrg?.id) {
+			fetchAttendance();
+		}
+	}, [currentOrg.id]);
 
 	const orgInfo = useQuery(api.orgs.get.getOrgMembersInfo, {
 		orgId: currentOrg.id,
-		info: ["attendance", "scheduledTimeOff", "members", "orgSettings", "orgMetadata"]
+		info: ["scheduledTimeOff", "members", "orgSettings", "orgMetadata"]
 	});
 
 	const stats = useMemo((): {
@@ -103,27 +155,17 @@ export default function HomeSection({ currentOrg, session, activeMember, refetch
 			return null;
 		}
 
-		const today = dayjs();
-		const yesterday = dayjs().subtract(1, "day");
-
-		const { attendance, scheduledTimeOff, members, orgSettings, orgMetadata } = orgInfo;
-
-		const todayAttendance = attendance?.filter((member) =>
-			dayjs(member.clock_in).isSame(today, "day")
-		);
-		const yesterdayAttendance = attendance?.filter((member) =>
-			dayjs(member.clock_in).isSame(yesterday, "day")
-		);
+		const { scheduledTimeOff, members, orgSettings, orgMetadata } = orgInfo;
 
 		const todayAttendanceCount = todayAttendance?.length ?? 0;
 		const yesterdayAttendanceCount = yesterdayAttendance?.length ?? 0;
 
 		const averageHoursToday =
-			(todayAttendance ?? []).reduce((acc, member) => {
-				const clockIn = dayjs(member.clock_in);
-				const clockOut = dayjs(member.clocked_out);
+			((todayAttendance ?? []) as Attendance[]).reduce((acc: number, member: Attendance) => {
+				const clockIn = dayjs(member.clockIn);
+				const clockOut = member.clockOut ? dayjs(member.clockOut) : dayjs();
 				return acc + clockOut.diff(clockIn, "hour", true);
-			}, 0) / (todayAttendanceCount ?? 0) || 0;
+			}, 0) / (todayAttendanceCount || 1);
 
 		const attendanceDifference = todayAttendanceCount - yesterdayAttendanceCount;
 		const attendanceRate =
@@ -184,7 +226,7 @@ export default function HomeSection({ currentOrg, session, activeMember, refetch
 		// - If we have half of the team active, then the description should be more of a warning saying that we might not be on track
 		// - If we have more than 3/4 of the team active, then the description should be something along the lines of "Everything's going well, keep it up!"
 
-		const attendanceRate = (orgInfo?.attendance?.length ?? 0) / (orgInfo?.members?.page?.length ?? 0);
+		const attendanceRate = (todayAttendance?.length ?? 0) / (orgInfo?.members?.page?.length ?? 0);
 		const description = attendanceRate < 0.5 ? "No activity yet, stay productive!" : "Everything's going well, keep it up!";
 
 		const currentHour = dayjs().hour();
@@ -207,7 +249,7 @@ export default function HomeSection({ currentOrg, session, activeMember, refetch
 			description,
 			icon: Moon,
 		};
-	}, [user]);
+	}, [user, todayAttendance, orgInfo]);
 
 	return (
 		<motion.div
@@ -320,6 +362,8 @@ export default function HomeSection({ currentOrg, session, activeMember, refetch
 									name: m.user?.name ?? null,
 									image: m.user?.image ?? undefined,
 								}))}
+								todayAttendance={todayAttendance || []}
+								userRole={userRole}
 							/>
 						</motion.div>
 						<motion.div
@@ -335,6 +379,7 @@ export default function HomeSection({ currentOrg, session, activeMember, refetch
 									role: m.role,
 									image: m.user?.image ?? undefined,
 								}))}
+								todayAttendance={todayAttendance || []}
 							/>
 						</motion.div>
 					</motion.div>
