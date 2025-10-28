@@ -1,0 +1,26 @@
+---
+description: Global rules for Jelli
+alwaysApply: true
+globs: ["**/*.ts", "**/*.tsx"]
+---
+
+- When dealing with Better-Auth components such as hooks, configuration files and similar:
+  -  ALWAYS consult the following websites for documentation:
+     - https://www.better-auth.com/llms.txt
+     - https://convex-better-auth.netlify.app/
+     - You may check all schemas under @convex\betterAuth\schema.ts and the plugins folder. The schema file may not always reflect the plugin schema folder, so if needed, check them.
+- The database being used is Convex, when dealing with convex components:
+  -  Use always the latest convex documentation: https://www.convex.dev/llms.txt
+  -  DO NOT MODIFY SCHEMAS. If needed, ask the user for permission.
+- When asked to refactor styling and others:
+  - Always prefer using ShadCn's components. 
+  - Always check properly the colors being used on the main css file.
+  - Check for similar components that might help you understand the current styling.
+  - You may create new components BASING THEM ON SHADCN'S COMPONENTS.
+  - You may check where they are installed by checking the @components.json file.
+  - You may add new components if it does not exist by using `bunx --bun shadcn@latest add <component_name>`
+- When dealing with Zod validation:
+  - The version being used is V4.
+	- Check the current documentation: https://zod.dev/llms.txt
+- After modifying something, ALWAYS run the linter to check for errors and correct them. If you are not able to correct them after 5 tries, stop and ask the user for more documentation if needed, DO NOT CONTINUE IF YOU'RE STUCK.
+- Always use ZOD for validating data, unless creating/modifying a Convex schema.

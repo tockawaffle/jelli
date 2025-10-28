@@ -152,7 +152,7 @@ export default function QuickActions({ userData, orgData, refetchOrg }: { userDa
 			</div>
 
 			{/* Modals / Sheets */}
-			<ClockInOutDialog open={clockModalOpen} onOpenChange={setClockModalOpen} userRole={userData.role} />
+			<ClockInOutDialog open={clockModalOpen} onOpenChange={setClockModalOpen} userRole={userData.role} refetchOrg={refetchOrg} />
 			<RequestTimeOffDialog open={timeOffOpen} onOpenChange={setTimeOffOpen} orgData={orgData} />
 			<GenerateReportDialog open={reportOpen} onOpenChange={setReportOpen} canGenerateOrgReport={canGenerateOrgReport} orgData={orgData} />
 			<ManageTeamSheet open={teamOpen} onOpenChange={setTeamOpen} orgData={orgData} currentUserId={userData.id} refetchOrg={refetchOrg} />

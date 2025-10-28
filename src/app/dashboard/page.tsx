@@ -2,6 +2,7 @@
 
 import CreateOrganizationDialog from "@/components/dashboard/CreateOrgDialog";
 import HomeSection from "@/components/dashboard/Home";
+import OrganizationSettings from "@/components/dashboard/Organization";
 import QuickActions from "@/components/dashboard/QuickActions";
 import DashboardSidebar from "@/components/dashboard/Sidebar";
 import { DashboardSkeleton } from "@/components/dashboard/skeleton";
@@ -9,14 +10,14 @@ import MinimalHeader from "@/components/Header";
 import SettingsPage from "@/components/settings/SettingsTabs";
 import { authClient } from "@/lib/auth-client";
 import { useConvexAuth } from "convex/react";
-import { CalendarIcon, ClockIcon, HomeIcon, Loader2, UsersIcon, Zap } from "lucide-react";
+import { Building2Icon, CalendarIcon, ClockIcon, HomeIcon, Loader2, SettingsIcon, UsersIcon, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
-export type SidebarActions = "home" | "time-tracking" | "schedule" | "team" | "reports" | "quick-actions" | "settings";
+export type SidebarActions = "home" | "time-tracking" | "schedule" | "team" | "reports" | "quick-actions" | "settings" | "organization";
 
-const sidebarSchema = z.enum(["home", "time-tracking", "schedule", "team", "reports", "quick-actions", "settings"]);
+const sidebarSchema = z.enum(["home", "time-tracking", "schedule", "team", "reports", "quick-actions", "settings", "organization"]);
 
 export default function DashboardPage() {
 	const { isLoading, isAuthenticated } = useConvexAuth();
@@ -26,6 +27,7 @@ export default function DashboardPage() {
 	const { data: session, refetch: refetchSession } = authClient.useSession();
 	const router = useRouter();
 	const [open, setOpen] = useState(false);
+
 	const [selectedAction, setSelectedAction] = useState<SidebarActions>(() => {
 		if (typeof window === "undefined") return "home";
 		const stored = localStorage.getItem("dashboard-last-action");
@@ -141,6 +143,15 @@ export default function DashboardPage() {
 				return <div className="p-4">Reports Page</div>;
 			case "quick-actions":
 				return <QuickActions userData={{ role: activeMember?.role || "", id: activeMember?.userId || "" }} orgData={currentOrg as unknown as FullOrganization} refetchOrg={refetchCurrentOrg} />;
+			case "organization":
+				return (
+					<OrganizationSettings
+						currentOrg={currentOrg as unknown as FullOrganization}
+						session={session}
+						activeMember={activeMember}
+						refetchOrg={refetchCurrentOrg}
+					/>
+				)
 			case "settings":
 				return <SettingsPage refetchSession={refetchSession} currentOrg={
 					currentOrg && {
@@ -175,17 +186,19 @@ export default function DashboardPage() {
 					router={router}
 					activeMember={activeMember}
 				>
-					<div className={selectedAction === "settings" ? "pb-24 md:pb-8" : "p-4 pb-24 md:pb-8"}>{renderContent()}</div>
+					<div className={"pb-24 md:pb-8"}>{renderContent()}</div>
 				</DashboardSidebar>
-			</div>
+			</div >
 			{/* Mobile bottom navigation */}
-			<nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t bg-card/80 backdrop-blur supports-backdrop-filter:bg-card/60">
+			< nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t bg-card/80 backdrop-blur supports-backdrop-filter:bg-card/60" >
 				<div className="grid grid-cols-5 gap-1 px-2 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)]">
 					{[
 						{ id: "home", label: "Home", icon: HomeIcon, role: null },
 						{ id: "time-tracking", label: "Time", icon: ClockIcon, role: null },
 						{ id: "quick-actions", label: "Actions", icon: Zap, role: null },
 						{ id: "schedule", label: "Schedule", icon: CalendarIcon, role: ["admin", "owner"] as const },
+						{ id: "organization", label: "Organization", icon: Building2Icon, role: ["admin", "owner"] as const },
+						{ id: "settings", label: "Settings", icon: SettingsIcon, role: null },
 						{ id: "team", label: "Team", icon: UsersIcon, role: ["admin", "owner"] as const },
 					]
 						.filter((item) => !item.role || item.role.includes(activeMember?.role as any))
@@ -205,7 +218,7 @@ export default function DashboardPage() {
 							);
 						})}
 				</div>
-			</nav>
-		</div>
+			</nav >
+		</div >
 	)
 }

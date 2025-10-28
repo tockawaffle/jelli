@@ -1,0 +1,4 @@
+---
+globs: src/lib/helpers/**/*.ts
+alwaysApply: false
+---

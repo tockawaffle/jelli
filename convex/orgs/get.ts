@@ -177,3 +177,29 @@ export const getScheduledTimeOffAmount = query({
 		return scheduledTimeOff.length;
 	}
 });
+
+export const canUserCreateOrganization = query({
+	args: v.object({
+		userId: v.string(),
+	}),
+	handler: async (ctx, args) => {
+		const { userId } = args;
+		const member = await ctx.runQuery(
+			authComponent.component.adapter.findOne,
+			{
+				model: "member",
+				where: [
+					{ field: "userId", operator: "eq", value: userId },
+				]
+			}
+		);
+
+		// If the user is not a member of any organization, they can create an organization.
+		if (!member) return true;
+
+		// Org owners can create more organizations.
+		// Org members (including admin and other roles that are not owners) cannot create more organizations until they are either kicked out of the organization or leave by their own volition.
+		if (member.role === "owner") return true;
+		return false;
+	}
+})

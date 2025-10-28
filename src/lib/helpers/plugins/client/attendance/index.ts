@@ -1,9 +1,12 @@
 import { BetterAuthClientPlugin, Prettify } from "better-auth";
-import { BetterFetchOption } from "better-auth/react";
+import { useAuthQuery } from "better-auth/client";
+import { BetterFetchError, BetterFetchOption } from "better-auth/react";
+import dayjs from "dayjs";
 import { atom } from "nanostores";
 import { z } from "zod";
-import { attendancePlugin } from "../../server/attendance";
+import { Attendance, attendancePlugin } from "../../server/attendance";
 import { attendanceSchema } from "../../server/attendance/schemas/base";
+import { getAutoAttendanceQueryValidation } from "../../server/attendance/schemas/zod";
 
 export type Data<T> = {
 	data: T;
@@ -39,22 +42,42 @@ export const attendanceActionValidation = z.object({
 })
 
 export const attendanceClientPlugin = () => {
-	const $getAttendance = atom(
-		{
-			data: {
-				data: [],
-			},
-			error: null,
-			isPending: false,
-			isRefetching: false,
-			refetch: () => { }
-		}
-	)
+	const $getAttendance = atom<{
+		data: Attendance[] | [];
+		error: null | BetterFetchError;
+		isPending: boolean;
+		isRefetching: boolean;
+		refetch: () => void
+	}>({
+		data: [],
+		error: null,
+		isPending: true,
+		isRefetching: false,
+		refetch: () => { }
+	});
+
+	const $getAttendanceQuery = atom<z.infer<typeof getAutoAttendanceQueryValidation>>({
+		limit: 100,
+		offset: 0,
+		sort: "desc",
+		dateRange: JSON.stringify({
+			start: dayjs().subtract(1, "day").startOf("day").toISOString(),
+			end: dayjs().endOf("day").toISOString(),
+		}),
+	});
+
 	return {
 		id: "attendancePlugin",
 		$InferServerPlugin: {} as ReturnType<typeof attendancePlugin>,
 		getActions: ($fetch) => {
 			return {
+				/**
+				 * Get the attendance data for a given date interval, organization ID, limit, offset, and sort.
+				 * Prefer using `getAutoAttendance` instead of this method when possible.
+				 * @param query - The query parameters for the attendance API.
+				 * @param fetchOptions - The fetch options for the attendance API.
+				 * @returns A promise that resolves to the attendance data.
+				 */
 				getAttendance: async (
 					query: z.infer<typeof getAttendanceQueryValidation>,
 					fetchOptions?: BetterFetchOption,
@@ -76,10 +99,25 @@ export const attendanceClientPlugin = () => {
 
 					return res as Data<z.infer<typeof attendanceSchema>[]>;
 				},
-				clockIn: async (data: z.infer<typeof attendanceActionValidation>, fetchOptions?: BetterFetchOption) => {
+				/**
+				 * Get the attendance data for a given date interval, organization ID, limit, offset, and sort.
+				 * This method is preferred over `getAttendance` when possible.
+				 * @param query - The query parameters for the attendance API.
+				 * @param fetchOptions - The fetch options for the attendance API.
+				 * @returns A promise that resolves to the attendance data.
+				 */
+				getAutoAttendance: async (query: z.infer<typeof getAutoAttendanceQueryValidation>, fetchOptions?: BetterFetchOption) => {
+					const res = await $fetch("/attendance/get-auto", {
+						method: "GET",
+						query: query,
+						...fetchOptions
+					})
+
+					return res as Data<z.infer<typeof attendanceSchema>[]>;
+				},
+				clockIn: async (fetchOptions?: BetterFetchOption) => {
 					const res = await $fetch("/attendance/clock-in", {
 						method: "POST",
-						body: data,
 						...fetchOptions
 					})
 
@@ -115,12 +153,25 @@ export const attendanceClientPlugin = () => {
 			}
 		},
 		getAtoms: ($fetch) => {
+			const getAttendance = useAuthQuery<Omit<Attendance, "_id">[] | []>(
+				$getAttendance,
+				`/attendance/get-auto`,
+				$fetch,
+				{
+					method: "GET",
+					query: $getAttendanceQuery.get(),
+				}
+			);
+
 			return {
-				$getAttendance
+				$getAttendance,
+				$getAttendanceQuery,
+				getAttendance
 			}
 		},
 		pathMethods: {
 			"/attendance/get": "POST",
+			"/attendance/get-auto": "GET",
 			"/attendance/clock-in": "POST",
 			"/attendance/clock-out": "POST",
 			"/attendance/lunch-start": "POST",
@@ -129,10 +180,11 @@ export const attendanceClientPlugin = () => {
 		atomListeners: [
 			{
 				matcher(path) {
-					return path === "/attendance/get"
+					return ["/attendance/clock-in", "/attendance/clock-out", "/attendance/lunch-start", "/attendance/lunch-end"].includes(path)
 				},
 				signal: "$getAttendance"
 			}
+
 		]
 	} satisfies BetterAuthClientPlugin
 }

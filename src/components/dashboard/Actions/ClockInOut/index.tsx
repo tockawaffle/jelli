@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -6,146 +7,44 @@ import { authClient } from "@/lib/auth-client";
 import dayjs from "dayjs";
 import { motion } from "framer-motion";
 import { AlertCircle, CheckCircle2, Clock, FileTextIcon, MapPin, QrCode, Settings, SmartphoneNfc } from "lucide-react";
-import React from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { METHOD_OPTIONS } from "./constants";
+import { useAttendanceToday, useLocationPermission } from "./hooks";
+import type { AttendanceRow, ClockInOutMethod, ControlledProps, RequestType } from "./types";
+import { calculateDistance, getDisabledMap, getRecommendationReason, getRecommendedType, isWithinRange } from "./utils";
 
-type ControlledProps = {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	/** Optional error message to render inside the modal/sheet */
-	error?: string | null;
-	userRole: string
-};
-
-export default function ClockInOutDialog({ open, onOpenChange, error, userRole, hasRegisteredDevice = false }: ControlledProps & { hasRegisteredDevice?: boolean }) {
-
-	const [method, setMethod] = React.useState<"qr" | "request" | "nfc">("request");
-	const [requestType, setRequestType] = React.useState<"clock-in" | "clock-out" | "lunch-break-start" | "lunch-break-end" | "time-off">("clock-in");
+export default function ClockInOutDialog({
+	open,
+	onOpenChange,
+	error,
+	userRole,
+	hasRegisteredDevice = false,
+	refetchOrg
+}: ControlledProps) {
+	const [method, setMethod] = useState<ClockInOutMethod>("request");
+	const [requestType, setRequestType] = useState<RequestType>("clock-in");
 	const { data: activeOrg } = authClient.useActiveOrganization();
-	const todayRow = authClient.getAttendance({
-		orgId: activeOrg?.id ?? "",
-		dateInterval: {
-			start: dayjs().startOf("day").toDate(),
-			end: dayjs().endOf("day").toDate(),
-		},
-		limit: 1,
-		offset: 0,
-		sort: "desc",
-	})
-	type LocationStatus = "idle" | "checking" | "granted" | "denied" | "error";
-	const [locationStatus, setLocationStatus] = React.useState<LocationStatus>("idle");
-	const permissionStateRef = React.useRef<"granted" | "denied" | "prompt" | null>(null);
+
+	const todayRow = useAttendanceToday(activeOrg?.id ?? "", open);
+
+	const { locationStatus, userLocation, requestLocationPermission } = useLocationPermission(open);
 
 	const status: string = (todayRow as any)?.status ?? "NONE";
+	const disabledMap = getDisabledMap(status);
 
-	const disabledMap: Record<typeof requestType, boolean> = {
-		"clock-in": ["CLOCKED_IN", "LUNCH_BREAK_STARTED", "LUNCH_BREAK_ENDED"].includes(status),
-		"lunch-break-start": status !== "CLOCKED_IN",
-		"lunch-break-end": status !== "LUNCH_BREAK_STARTED",
-		"clock-out": !["CLOCKED_IN", "LUNCH_BREAK_ENDED"].includes(status),
-		"time-off": false,
-	};
-
-	function getRecommendationReason(row: any | null, type: typeof requestType): string {
-		if (!row) return "we haven't recorded any clock-in for today.";
-		switch (type) {
-			case "clock-in":
-				return row.clock_in ? "you already clocked in earlier today." : "you haven't clocked in yet today.";
-			case "lunch-break-start":
-				return row.status === "CLOCKED_IN" ? `you are currently clocked in since ${row.clock_in || "--:--"}.` : "you're not clocked in.";
-			case "lunch-break-end":
-				return row.status === "LUNCH_BREAK_STARTED" ? `your lunch started at ${row.lunch_break_out || "--:--"}.` : "you haven't started lunch.";
-			case "clock-out":
-				return row.status === "LUNCH_BREAK_ENDED" || row.status === "CLOCKED_IN" ? "you're in a valid state to clock out." : "you must be clocked in (and ideally have ended lunch).";
-			default:
-				return "today's context";
-		}
-	}
-
-	function getRecommendedType(row: any | null): typeof requestType {
-		if (!row) return "clock-in";
-		switch (row.status) {
-			case "TBR":
-				return row.clock_in ? "lunch-break-start" : "clock-in";
-			case "CLOCKED_IN":
-				return row.lunch_break_out ? "clock-out" : "lunch-break-start";
-			case "LUNCH_BREAK_STARTED":
-				return "lunch-break-end";
-			case "LUNCH_BREAK_ENDED":
-				return row.clocked_out ? "clock-in" : "clock-out";
-			case "CLOCKED_OUT":
-			default:
-				return "clock-in";
-		}
-	}
-
-	React.useEffect(() => {
+	useEffect(() => {
 		if (method === "request") {
-			setRequestType(getRecommendedType(todayRow as any));
+			setRequestType(getRecommendedType(todayRow as AttendanceRow));
 		}
 	}, [method, todayRow]);
 
-	function requestLocationPermission() {
-		if (typeof window === "undefined" || !("geolocation" in navigator)) {
-			console.debug("[ClockInOutDialog] Geolocation not available in this environment.");
-			setLocationStatus("denied");
-			return;
+	useEffect(() => {
+		if (locationStatus === "granted" && !userLocation) {
+			requestLocationPermission();
 		}
-		setLocationStatus("checking");
-		console.debug("[ClockInOutDialog] Requesting geolocation permission...");
-		navigator.geolocation.getCurrentPosition(
-			(pos) => {
-				console.debug("[ClockInOutDialog] Geolocation granted:", {
-					lat: pos.coords.latitude,
-					lon: pos.coords.longitude,
-					accuracy: pos.coords.accuracy,
-				});
-				setLocationStatus("granted");
-			},
-			(err) => {
-				console.warn("[ClockInOutDialog] Geolocation denied/error:", err);
-				// code 1: permission denied, 2: position unavailable, 3: timeout
-				if (err?.code === 1) {
-					setLocationStatus("denied");
-				} else {
-					// If permission has been granted but fix failed, treat as granted for flow gating
-					if (permissionStateRef.current === "granted") {
-						console.debug("[ClockInOutDialog] Permission is granted but position unavailable/timeout. Proceeding as granted.");
-						setLocationStatus("granted");
-					} else {
-						setLocationStatus("error");
-					}
-				}
-			},
-			{ enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
-		);
-	}
+	}, [locationStatus, userLocation]);
 
-	React.useEffect(() => {
-		if (!open) return;
-		const nav: any = typeof navigator !== "undefined" ? (navigator as any) : null;
-		if (!nav?.permissions?.query) return;
-		let active = true;
-		nav.permissions
-			.query({ name: "geolocation" as any })
-			.then((perm: any) => {
-				if (!active) return;
-				console.debug("[ClockInOutDialog] Permission state:", perm.state);
-				permissionStateRef.current = perm.state;
-				setLocationStatus(perm.state === "granted" ? "granted" : perm.state === "denied" ? "denied" : "idle");
-				perm.onchange = () => {
-					if (!active) return;
-					console.debug("[ClockInOutDialog] Permission changed:", perm.state);
-					permissionStateRef.current = perm.state;
-					setLocationStatus(perm.state === "granted" ? "granted" : perm.state === "denied" ? "denied" : "idle");
-				};
-			})
-			.catch((e: any) => {
-				console.debug("[ClockInOutDialog] Permissions API not available or failed:", e);
-			});
-		return () => {
-			active = false;
-		};
-	}, [open]);
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-card/95 backdrop-blur-sm border-border/50">
@@ -191,45 +90,24 @@ export default function ClockInOutDialog({ open, onOpenChange, error, userRole, 
 							<div className="space-y-2">
 								<h3 className="text-sm font-medium text-foreground">Select Method</h3>
 								<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-									{[
-										{
-											id: "qr",
-											icon: QrCode,
-											title: "QR Code",
-											description: "Scan at kiosk or team device",
-											disabled: !hasRegisteredDevice
-										},
-										{
-											id: "nfc",
-											icon: SmartphoneNfc,
-											title: "NFC Tag",
-											description: "Tap NFC tag for instant clock in/out",
-											disabled: false
-										},
-										{
-											id: "request",
-											icon: FileTextIcon,
-											title: "Manual Request",
-											description: "Best for off-site or time corrections",
-											disabled: false
-										}
-									].map((option, index) => {
+									{METHOD_OPTIONS.map((option, index) => {
 										const Icon = option.icon;
 										const isSelected = method === option.id;
+										const isDisabled = option.id === "qr" && !hasRegisteredDevice;
 										return (
 											<motion.button
 												key={option.id}
 												className={`relative p-4 rounded-xl border text-center transition-all duration-200 ${isSelected
 													? "bg-primary/10 border-primary/30 text-primary"
 													: "bg-background/50 border-border/50 hover:bg-muted/50 hover:border-border"
-													} ${option.disabled ? "opacity-50 cursor-not-allowed" : "hover:scale-[1.02]"}`}
-												onClick={() => !option.disabled && setMethod(option.id as any)}
-												disabled={option.disabled}
+													} ${isDisabled ? "opacity-50 cursor-not-allowed" : "hover:scale-[1.02]"}`}
+												onClick={() => !isDisabled && setMethod(option.id)}
+												disabled={isDisabled}
 												initial={{ opacity: 0, y: 20 }}
 												animate={{ opacity: 1, y: 0 }}
 												transition={{ duration: 0.3, delay: index * 0.1 }}
-												whileHover={option.disabled ? {} : { y: -2 }}
-												whileTap={option.disabled ? {} : { scale: 0.98 }}
+												whileHover={isDisabled ? {} : { y: -2 }}
+												whileTap={isDisabled ? {} : { scale: 0.98 }}
 											>
 												<div className="space-y-3">
 													<div className={`h-12 w-12 mx-auto rounded-lg flex items-center justify-center ${isSelected ? "bg-primary/20" : "bg-muted/50"
@@ -282,10 +160,12 @@ export default function ClockInOutDialog({ open, onOpenChange, error, userRole, 
 								<div className="bg-card/50 border border-border/50 rounded-xl p-4 space-y-4">
 									<div className="flex flex-wrap items-center gap-2">
 										<span className="font-medium">Recommended:</span>
-										<span className="px-2 py-0.5 rounded-md bg-accent-foreground text-foreground text-xs">
-											{requestType.replaceAll("-", " ")}
-										</span>
-										<span className="text-xs text-muted-foreground">— {getRecommendationReason(todayRow as any, requestType)}</span>
+										<Badge variant="secondary">
+											{
+												requestType.replaceAll("-", " ").charAt(0).toUpperCase() + requestType.replaceAll("-", " ").slice(1)
+											}
+										</Badge>
+										<span className="text-xs text-muted-foreground">— {getRecommendationReason(todayRow as AttendanceRow, requestType)}</span>
 									</div>
 									<div className="text-xs text-muted-foreground">Now: {dayjs().format("h:mm A")} — Today ({dayjs().format("ddd, MMM D")})</div>
 									<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
@@ -302,7 +182,7 @@ export default function ClockInOutDialog({ open, onOpenChange, error, userRole, 
 
 									<div className="grid gap-2">
 										<Label>What are you requesting?</Label>
-										<ToggleGroup type="single" value={requestType} onValueChange={(v) => v && setRequestType(v as any)} className="w-full" variant="outline">
+										<ToggleGroup type="single" value={requestType} onValueChange={(v) => v && setRequestType(v as RequestType)} className="w-full" variant="outline">
 											<ToggleGroupItem value="clock-in" className="text-xs" disabled={disabledMap["clock-in"]}>Clock In</ToggleGroupItem>
 											<ToggleGroupItem value="lunch-break-start" className="text-xs" disabled={disabledMap["lunch-break-start"]}>Lunch Out</ToggleGroupItem>
 											<ToggleGroupItem value="lunch-break-end" className="text-xs" disabled={disabledMap["lunch-break-end"]}>Lunch In</ToggleGroupItem>
@@ -349,7 +229,7 @@ export default function ClockInOutDialog({ open, onOpenChange, error, userRole, 
 												<span className="px-2 py-0.5 rounded-md bg-accent-foreground text-foreground text-xs">
 													{requestType.replaceAll("-", " ")}
 												</span>
-												<span className="text-xs text-muted-foreground">— {getRecommendationReason(todayRow as any, requestType)}</span>
+												<span className="text-xs text-muted-foreground">— {getRecommendationReason(todayRow as AttendanceRow, requestType)}</span>
 											</div>
 										</div>
 									)}
@@ -376,7 +256,78 @@ export default function ClockInOutDialog({ open, onOpenChange, error, userRole, 
 						{method === "request" && (
 							<Button
 								className="gap-2"
-								disabled={locationStatus === "denied" || locationStatus === "error" || locationStatus === "idle"}
+								disabled={locationStatus === "denied" || locationStatus === "error" || locationStatus === "idle" || locationStatus === "checking" || !userLocation}
+								onClick={() => {
+									if (!activeOrg) return;
+									const orgMetadata = typeof activeOrg.metadata === "string" ? JSON.parse(activeOrg.metadata) : activeOrg.metadata;
+									// Check if the location is within the organization's location
+									if (!orgMetadata.location) {
+										toast.error("Organization location is not set. Please contact an admin to set the location.")
+										return
+									}
+
+									if (orgMetadata.location.latitude && orgMetadata.location.longitude) {
+										// Check if user location is available
+										if (!userLocation) {
+											toast.error("Unable to get your location. Please try again.");
+											return;
+										}
+
+										// Calculate distance and check if within range (100 meters by default)
+										const distance = calculateDistance(
+											userLocation.latitude,
+											userLocation.longitude,
+											orgMetadata.location.latitude,
+											orgMetadata.location.longitude
+										);
+
+										const withinRange = isWithinRange(
+											userLocation.latitude,
+											userLocation.longitude,
+											orgMetadata.location.latitude,
+											orgMetadata.location.longitude
+										);
+
+										if (!withinRange) {
+											toast.error(
+												`You're too far from the organization location. Distance: ${Math.round(distance)}m (max: 100m)`
+											);
+											return;
+										}
+
+										// User is within range, proceed with clock-in
+										console.debug(`User is within range. Distance: ${distance.toFixed(2)}m`);
+									}
+
+									switch (requestType) {
+										case "clock-in": {
+											authClient.attendance.clockIn({}, {
+												onSuccess: () => {
+													toast.success("Clocked in successfully");
+													onOpenChange(false);
+												},
+												onError: (error) => {
+													toast.error("Failed to clock-in. Please try again.");
+													console.error(error);
+												}
+											});
+											break;
+										}
+										case "lunch-break-start": {
+											authClient.attendance.lunchStart({}, {
+												onSuccess: () => {
+													toast.success("Lunch break started successfully");
+													onOpenChange(false);
+												},
+												onError: (error) => {
+													toast.error("Failed to start lunch break. Please try again.");
+													console.error(error);
+												}
+											});
+											break;
+										}
+									}
+								}}
 							>
 								<FileTextIcon className="h-4 w-4" />
 								Submit Request
@@ -400,3 +351,4 @@ export default function ClockInOutDialog({ open, onOpenChange, error, userRole, 
 		</Dialog>
 	);
 }
+

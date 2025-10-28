@@ -92,6 +92,7 @@ export declare const components: {
                     | {
                         bio: string;
                         isOnline?: null | boolean;
+                        lunchTime?: null | string | "flexible";
                         name: { firstName: string; lastName: string };
                       };
                   name: string;
@@ -153,7 +154,38 @@ export declare const components: {
                 data: {
                   createdAt: number;
                   logo?: null | string;
-                  metadata?: null | string;
+                  metadata?:
+                    | null
+                    | string
+                    | {
+                        contactInfo: {
+                          hrMail: string;
+                          mainMail: string;
+                          phones?: null | {
+                            hrPhone: string;
+                            mainPhone: string;
+                          };
+                          websiteUrl?: null | string;
+                        };
+                        hours: {
+                          close: string;
+                          gracePeriod: number;
+                          open: string;
+                          timezone: string;
+                        };
+                        location?: null | {
+                          address: string;
+                          city: string;
+                          country: string;
+                          formattedAddress: string;
+                          latitude: number;
+                          longitude: number;
+                          postalCode: string;
+                          state: string;
+                        };
+                        orgDescription: string;
+                        strictLunchTime?: null | boolean;
+                      };
                   name: string;
                   slug: string;
                 };
@@ -162,6 +194,10 @@ export declare const components: {
             | {
                 data: {
                   createdAt: number;
+                  metadata?: null | {
+                    lunchTimeDuration?: null | number | "flexible";
+                    lunchTimeStart?: null | string | "flexible";
+                  };
                   organizationId: string;
                   role: string;
                   userId: string;
@@ -212,12 +248,16 @@ export declare const components: {
             | {
                 data: {
                   clockIn: string;
-                  clockOut: string;
+                  clockOut?: null | string;
                   date: string;
-                  earlyOut: boolean;
-                  lunchBreakOut: string;
-                  lunchBreakReturn: string;
-                  operation: Array<string>;
+                  earlyOut?: null | boolean;
+                  lunchBreakOut?: null | string;
+                  lunchBreakReturn?: null | string;
+                  operation: Array<{
+                    createdAt: string;
+                    id: string;
+                    type: "nfc" | "webapp" | "qr";
+                  }>;
                   orgId: string;
                   role: string;
                   status: string;
@@ -448,6 +488,7 @@ export declare const components: {
                     | "userId"
                     | "role"
                     | "createdAt"
+                    | "metadata"
                     | "_id";
                   operator?:
                     | "lt"
@@ -867,6 +908,7 @@ export declare const components: {
                     | "userId"
                     | "role"
                     | "createdAt"
+                    | "metadata"
                     | "_id";
                   operator?:
                     | "lt"
@@ -1180,6 +1222,7 @@ export declare const components: {
                     | {
                         bio: string;
                         isOnline?: null | boolean;
+                        lunchTime?: null | string | "flexible";
                         name: { firstName: string; lastName: string };
                       };
                   name?: string;
@@ -1394,7 +1437,38 @@ export declare const components: {
                 update: {
                   createdAt?: number;
                   logo?: null | string;
-                  metadata?: null | string;
+                  metadata?:
+                    | null
+                    | string
+                    | {
+                        contactInfo: {
+                          hrMail: string;
+                          mainMail: string;
+                          phones?: null | {
+                            hrPhone: string;
+                            mainPhone: string;
+                          };
+                          websiteUrl?: null | string;
+                        };
+                        hours: {
+                          close: string;
+                          gracePeriod: number;
+                          open: string;
+                          timezone: string;
+                        };
+                        location?: null | {
+                          address: string;
+                          city: string;
+                          country: string;
+                          formattedAddress: string;
+                          latitude: number;
+                          longitude: number;
+                          postalCode: string;
+                          state: string;
+                        };
+                        orgDescription: string;
+                        strictLunchTime?: null | boolean;
+                      };
                   name?: string;
                   slug?: string;
                 };
@@ -1432,6 +1506,10 @@ export declare const components: {
                 model: "member";
                 update: {
                   createdAt?: number;
+                  metadata?: null | {
+                    lunchTimeDuration?: null | number | "flexible";
+                    lunchTimeStart?: null | string | "flexible";
+                  };
                   organizationId?: string;
                   role?: string;
                   userId?: string;
@@ -1443,6 +1521,7 @@ export declare const components: {
                     | "userId"
                     | "role"
                     | "createdAt"
+                    | "metadata"
                     | "_id";
                   operator?:
                     | "lt"
@@ -1631,12 +1710,16 @@ export declare const components: {
                 model: "attendance";
                 update: {
                   clockIn?: string;
-                  clockOut?: string;
+                  clockOut?: null | string;
                   date?: string;
-                  earlyOut?: boolean;
-                  lunchBreakOut?: string;
-                  lunchBreakReturn?: string;
-                  operation?: Array<string>;
+                  earlyOut?: null | boolean;
+                  lunchBreakOut?: null | string;
+                  lunchBreakReturn?: null | string;
+                  operation?: Array<{
+                    createdAt: string;
+                    id: string;
+                    type: "nfc" | "webapp" | "qr";
+                  }>;
                   orgId?: string;
                   role?: string;
                   status?: string;
@@ -1716,6 +1799,7 @@ export declare const components: {
                     | {
                         bio: string;
                         isOnline?: null | boolean;
+                        lunchTime?: null | string | "flexible";
                         name: { firstName: string; lastName: string };
                       };
                   name?: string;
@@ -1930,7 +2014,38 @@ export declare const components: {
                 update: {
                   createdAt?: number;
                   logo?: null | string;
-                  metadata?: null | string;
+                  metadata?:
+                    | null
+                    | string
+                    | {
+                        contactInfo: {
+                          hrMail: string;
+                          mainMail: string;
+                          phones?: null | {
+                            hrPhone: string;
+                            mainPhone: string;
+                          };
+                          websiteUrl?: null | string;
+                        };
+                        hours: {
+                          close: string;
+                          gracePeriod: number;
+                          open: string;
+                          timezone: string;
+                        };
+                        location?: null | {
+                          address: string;
+                          city: string;
+                          country: string;
+                          formattedAddress: string;
+                          latitude: number;
+                          longitude: number;
+                          postalCode: string;
+                          state: string;
+                        };
+                        orgDescription: string;
+                        strictLunchTime?: null | boolean;
+                      };
                   name?: string;
                   slug?: string;
                 };
@@ -1968,6 +2083,10 @@ export declare const components: {
                 model: "member";
                 update: {
                   createdAt?: number;
+                  metadata?: null | {
+                    lunchTimeDuration?: null | number | "flexible";
+                    lunchTimeStart?: null | string | "flexible";
+                  };
                   organizationId?: string;
                   role?: string;
                   userId?: string;
@@ -1979,6 +2098,7 @@ export declare const components: {
                     | "userId"
                     | "role"
                     | "createdAt"
+                    | "metadata"
                     | "_id";
                   operator?:
                     | "lt"
@@ -2167,12 +2287,16 @@ export declare const components: {
                 model: "attendance";
                 update: {
                   clockIn?: string;
-                  clockOut?: string;
+                  clockOut?: null | string;
                   date?: string;
-                  earlyOut?: boolean;
-                  lunchBreakOut?: string;
-                  lunchBreakReturn?: string;
-                  operation?: Array<string>;
+                  earlyOut?: null | boolean;
+                  lunchBreakOut?: null | string;
+                  lunchBreakReturn?: null | string;
+                  operation?: Array<{
+                    createdAt: string;
+                    id: string;
+                    type: "nfc" | "webapp" | "qr";
+                  }>;
                   orgId?: string;
                   role?: string;
                   status?: string;

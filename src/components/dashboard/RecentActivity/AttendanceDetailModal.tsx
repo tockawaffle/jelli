@@ -2,15 +2,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import type { Attendance } from "@/lib/helpers/plugins/server/attendance";
 import dayjs from "dayjs";
 import { Clock, Coffee, LogIn, LogOut, Timer } from "lucide-react";
 import { formatDuration, isValidDate } from "./helpers";
-import type { Attendance, Member } from "./types";
+import type { Member } from "./types";
 
 type AttendanceDetailModalProps = {
 	isOpen: boolean;
 	onClose: () => void;
-	attendance: Attendance | null;
+	attendance: Omit<Attendance, "_id"> | null;
 	member: Member | null;
 };
 

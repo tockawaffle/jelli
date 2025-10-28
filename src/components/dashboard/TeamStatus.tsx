@@ -2,16 +2,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { attendanceSchema } from "@/lib/helpers/plugins/server/attendance/schemas/zod";
+import type { Attendance } from "@/lib/helpers/plugins/server/attendance";
 import dayjs from "dayjs";
-import { z } from "zod";
-
-type Attendance = z.infer<typeof attendanceSchema>;
 
 type TeamStatusProps = {
 	orgInfo?: OrgInfo | null;
 	orgMembers?: { userId: string; name: string | null; role?: string | null; image?: string | null }[];
-	todayAttendance: Attendance[];
+	todayAttendance: Omit<Attendance, "_id">[];
 };
 
 type StatusKey = "active" | "break" | "offline";
@@ -23,7 +20,7 @@ const statusMeta: Record<StatusKey, { label: string; dot: string; badgeClass: st
 };
 
 export default function TeamStatus({ orgInfo, orgMembers = [], todayAttendance }: TeamStatusProps) {
-	const attendanceByUserId = new Map<string, Attendance>();
+	const attendanceByUserId = new Map<string, Omit<Attendance, "_id">>();
 	for (const row of todayAttendance) attendanceByUserId.set(row.userId, row);
 
 	const isValidDate = (dateString?: string) => {
@@ -37,7 +34,7 @@ export default function TeamStatus({ orgInfo, orgMembers = [], todayAttendance }
 		return dayjs(isoString).format("h:mm A");
 	};
 
-	const derive = (row?: Attendance): { status: StatusKey; when?: string; timeLabel?: string } => {
+	const derive = (row?: Omit<Attendance, "_id">): { status: StatusKey; when?: string; timeLabel?: string } => {
 		if (!row) return { status: "offline", timeLabel: "Not clocked in" };
 		switch (row.status) {
 			case "CLOCKED_IN":

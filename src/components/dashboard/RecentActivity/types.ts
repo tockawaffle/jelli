@@ -1,8 +1,5 @@
-import { attendanceSchema } from "@/lib/helpers/plugins/server/attendance/schemas/zod";
-import { z } from "zod";
-
-export type Attendance = z.infer<typeof attendanceSchema>;
-
+import type { Attendance } from "@/lib/helpers/plugins/server/attendance";
+export type { Attendance };
 export type Member = {
 	userId: string;
 	name: string | null;
@@ -23,7 +20,7 @@ export type ViewItem = {
 export type RecentActivityProps = {
 	orgInfo?: OrgInfo | null;
 	orgMembers?: Member[];
-	todayAttendance: Attendance[];
+	todayAttendance: Omit<Attendance, "_id">[];
 	userRole?: string;
 };
 

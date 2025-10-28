@@ -4,7 +4,7 @@ export type UnauthHandler = {
 	test: (action: string) => boolean; //eslint-disable-line no-unused-vars
 	getUserId: (ctx: any) => Promise<string | undefined>; //eslint-disable-line no-unused-vars
 	formatAction?: (action: string, ctx: any) => string; //eslint-disable-line no-unused-vars
-	severity: "info" | "warning" | "error" | "severe";
+	severity: "info" | "warning" | "error" | "severe" | "unknown";
 };
 
 const unauthHandlers: UnauthHandler[] = [

@@ -17,7 +17,7 @@ declare global {
 	// Define the result type
 	type EmailResult = Result<EmailSuccess, EmailError>;
 
-	type SidebarActions = "home" | "time-tracking" | "schedule" | "team" | "reports" | "quick-actions";
+	type SidebarActions = "home" | "time-tracking" | "schedule" | "team" | "reports" | "quick-actions" | "organization" | "settings";
 
 	export type FullOrganization = {
 		/**
@@ -35,7 +35,7 @@ declare global {
 		slug: string
 		logo: string | null
 		createdAt: number
-		metadata: string // Should be a JSON string
+		metadata: OrgMetadata // Should be a JSON string
 		invitations: Invitation[]
 		members: (Member & {
 			user: {

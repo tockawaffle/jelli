@@ -4,14 +4,6 @@ import { attendanceOperationSchema, attendanceStatusSchema } from "./zod";
 export const attendanceSchema = {
 	attendance: {
 		fields: {
-			_id: {
-				type: "string",
-				required: true,
-				unique: true,
-				defaultValue: () => {
-					return crypto.randomUUID()
-				}
-			},
 			userId: {
 				type: "string",
 				required: true,
@@ -33,24 +25,29 @@ export const attendanceSchema = {
 				required: true,
 			},
 			date: {
-				type: "date",
+				type: "string",
 				required: true,
+				defaultValue: null,
 			},
 			clockIn: {
-				type: "date",
+				type: "string",
 				required: true,
+				defaultValue: null,
 			},
 			lunchBreakOut: {
-				type: "date",
+				type: "string",
 				required: false,
+				defaultValue: null,
 			},
 			lunchBreakReturn: {
-				type: "date",
+				type: "string",
 				required: false,
+				defaultValue: null,
 			},
 			clockOut: {
-				type: "date",
+				type: "string",
 				required: false,
+				defaultValue: null,
 			},
 			status: {
 				type: "string",
@@ -85,7 +82,7 @@ export const attendanceSchema = {
 				defaultValue: 0,
 			},
 			operation: {
-				type: "json",
+				type: "string[]",
 				required: true,
 				defaultValue: [],
 				validator: {

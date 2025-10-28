@@ -11,7 +11,7 @@ import type { Attendance, Member, RecentActivityProps, ViewItem } from "./types"
 
 export default function RecentActivity({ orgInfo, orgMembers, todayAttendance, userRole }: RecentActivityProps) {
 	const members = orgMembers ?? [];
-	const [selectedUser, setSelectedUser] = useState<{ attendance: Attendance; member: Member } | null>(null);
+	const [selectedUser, setSelectedUser] = useState<{ attendance: Omit<Attendance, "_id">; member: Member } | null>(null);
 
 	const isAdmin = ["admin", "owner"].includes(userRole || "");
 
@@ -32,7 +32,7 @@ export default function RecentActivity({ orgInfo, orgMembers, todayAttendance, u
 		return map;
 	}, [members, memberImagesQueries]);
 
-	const attendanceByUserId = new Map<string, Attendance>();
+	const attendanceByUserId = new Map<string, Omit<Attendance, "_id">>();
 	for (const row of todayAttendance) attendanceByUserId.set(row.userId, row);
 
 	const handleUserClick = (member: Member) => {

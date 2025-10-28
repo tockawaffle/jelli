@@ -25,7 +25,8 @@ export const tables = {
 						lastName: v.string(),
 					}),
 					bio: v.string(),
-					isOnline: v.optional(v.union(v.null(), v.boolean()))
+					isOnline: v.optional(v.union(v.null(), v.boolean())),
+					lunchTime: v.optional(v.union(v.null(), v.string(), v.literal("flexible")))
 				})
 			)
 		),
@@ -84,7 +85,35 @@ export const tables = {
 		slug: v.string(),
 		logo: v.optional(v.union(v.null(), v.string())),
 		createdAt: v.number(),
-		metadata: v.optional(v.union(v.null(), v.string())),
+		metadata: v.optional(v.union(v.null(), v.string(), v.object({
+			orgDescription: v.string(),
+			strictLunchTime: v.optional(v.union(v.null(), v.boolean())), // If true, the user cannot start lunch break after the lunch time starts (+ grace period), if it's false, the user may start lunch break at any time AFTER the set lunch time that user has.
+			contactInfo: v.object({
+				mainMail: v.string(),
+				hrMail: v.string(),
+				websiteUrl: v.optional(v.union(v.null(), v.string())),
+				phones: v.optional(v.union(v.null(), v.object({
+					mainPhone: v.string(),
+					hrPhone: v.string(),
+				}))),
+			}),
+			hours: v.object({
+				open: v.string(),
+				close: v.string(),
+				timezone: v.string(),
+				gracePeriod: v.number(),
+			}),
+			location: v.optional(v.union(v.null(), v.object({
+				address: v.string(),
+				city: v.string(),
+				state: v.string(),
+				postalCode: v.string(),
+				country: v.string(),
+				latitude: v.number(),
+				longitude: v.number(),
+				formattedAddress: v.string(),
+			}))),
+		}))),
 	})
 		.index("name", ["name"])
 		.index("slug", ["slug"]),
@@ -93,8 +122,13 @@ export const tables = {
 		userId: v.string(),
 		role: v.string(),
 		createdAt: v.number(),
+		metadata: v.optional(v.union(v.null(), v.object({
+			lunchTimeStart: v.optional(v.union(v.null(), v.string(), v.literal("flexible"))),
+			lunchTimeDuration: v.optional(v.union(v.null(), v.number(), v.literal("flexible"))),
+		}))),
 	})
 		.index("organizationId", ["organizationId"])
+		.index("organizationId_userId", ["organizationId", "userId"])
 		.index("userId", ["userId"])
 		.index("role", ["role"]),
 	invitation: defineTable({
@@ -143,19 +177,23 @@ export const tables = {
 		role: v.string(),
 		date: v.string(),
 		clockIn: v.string(),
-		lunchBreakOut: v.string(),
-		lunchBreakReturn: v.string(),
-		clockOut: v.string(),
+		lunchBreakOut: v.optional(v.union(v.null(), v.string())),
+		lunchBreakReturn: v.optional(v.union(v.null(), v.string())),
+		clockOut: v.optional(v.union(v.null(), v.string())),
 		status: v.string(),
 		totalWorkSeconds: v.number(),
 		totalBreakSeconds: v.number(),
 		wasLate: v.boolean(),
-		earlyOut: v.boolean(),
+		earlyOut: v.optional(v.union(v.null(), v.boolean())),
 		timesUpdated: v.number(),
-		operation: v.array(v.string()),
+		operation: v.array(v.object({
+			id: v.string(),
+			type: v.union(v.literal("nfc"), v.literal("webapp"), v.literal("qr")),
+			createdAt: v.string(),
+		})),
 	})
 		.index("userId", ["userId"])
-		.index("orgId", ["orgId"]),
+		.index("orgId", ["orgId"])
 };
 
 const schema = defineSchema(tables);

@@ -22,11 +22,12 @@ import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import { getUserName } from "./dashboard/Home/utils"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 
 type MinimalHeaderProps = {
-	user: User & { metadata: { photoStorageId: Id<"_storage"> | undefined } } | null
+	user: User | null
 	organization: Organization | null
 }
 
@@ -35,7 +36,6 @@ export default function MinimalHeader({ user, organization }: MinimalHeaderProps
 	const router = useRouter()
 
 	const [latestProfileImage, setLatestProfileImage] = useState<string | null>(user ? user.image || null : null)
-
 
 	// Sign out handler
 	const handleSignOut = async () => {
@@ -123,7 +123,7 @@ export default function MinimalHeader({ user, organization }: MinimalHeaderProps
 					>
 						<DropdownMenuLabel className="font-normal">
 							<div className="flex flex-col space-y-1 p-2">
-								<p className="text-sm font-medium leading-none">{user?.name}</p>
+								<p className="text-sm font-medium leading-none">{getUserName(user as User & { metadata: { name: { firstName: string; lastName: string } } }, "fullName")}</p>
 								<p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
 							</div>
 						</DropdownMenuLabel>

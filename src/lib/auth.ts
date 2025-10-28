@@ -1,8 +1,8 @@
 import { convex } from "@convex-dev/better-auth/plugins";
-import { betterAuth } from "better-auth";
+import { APIError, betterAuth } from "better-auth";
 import { localization as errorLocalization } from "better-auth-localization";
 import { createAuthMiddleware, deviceAuthorization, haveIBeenPwned, lastLoginMethod, openAPI, organization, twoFactor } from "better-auth/plugins";
-import { fetchAction } from "convex/nextjs";
+import { fetchAction, fetchQuery } from "convex/nextjs";
 import { api } from "../../convex/_generated/api";
 import { type GenericCtx } from "../../convex/_generated/server";
 import { authComponent } from "../../convex/auth";
@@ -115,20 +115,32 @@ export const createAuth = (ctx: GenericCtx) =>
 			convex(),
 			userHelpersPlugin(),
 			organization({
-				allowUserToCreateOrganization(user) {
-					return true;
+				allowUserToCreateOrganization: (user) => {
+					return true
 				},
 				organizationLimit: 2,
-				organizationCreation: {
-					beforeCreate: async ({ organization, user }, request) => {
+				organizationHooks: {
+					beforeCreateOrganization: async ({ organization, user }) => {
+						const canCreate = await fetchQuery(api.orgs.get.canUserCreateOrganization, {
+							userId: user.id
+						}) as boolean;
+
+						if (!canCreate) {
+							throw new APIError("FORBIDDEN", { message: "You are not allowed to create organizations", code: "403A" })
+						}
+
 						if (organization.logo && organization.logo.startsWith("storage_")) {
 							const url = await ctx.storage.getUrl(organization.logo as any);
-							organization.logo = url;
+							organization.logo = url as string;
 						}
+
 						return {
-							data: organization
+							data: {
+								...organization,
+								metadata: typeof organization.metadata === "string" ? JSON.parse(organization.metadata) : organization.metadata
+							}
 						}
-					}
+					},
 				},
 				async sendInvitationEmail(data) {
 					const inviteLink = `${siteUrl}/orgs/invite?id=${data.id}&invited=${data.email}`
@@ -157,10 +169,20 @@ export const createAuth = (ctx: GenericCtx) =>
 			auditLogsPlugin(
 				{
 					mergeDefaultIgnoredActions: true,
+					mergeDefaultSeverityMap: true,
 					ignoredActions: [
 						"organization-get-full-organization",
-						"convex-token"
-					]
+						"convex-token",
+						"attendance-get-auto",
+						"attendance-get"
+					],
+					customSeverityMap: {
+						"attendance-clock-in": "info",
+						"attendance-clock-out": "info",
+						"attendance-lunch-start": "info",
+						"attendance-lunch-end": "info",
+					}
+
 				}
 			),
 			errorLocalization({
@@ -191,5 +213,5 @@ export const createAuth = (ctx: GenericCtx) =>
 					return await getFullOrganizationMiddleware(mdCtx)
 				}
 			})
-		}
+		},
 	});

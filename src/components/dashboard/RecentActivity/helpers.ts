@@ -23,7 +23,7 @@ export const formatDuration = (seconds: number) => {
 	return `${hours}h ${mins}m`;
 };
 
-export const deriveStatus = (row: Attendance): { status: ActivityStatus; when?: string } => {
+export const deriveStatus = (row: Omit<Attendance, "_id">): { status: ActivityStatus; when?: string } => {
 	switch (row.status) {
 		case "CLOCKED_OUT":
 			return { status: row.earlyOut ? ActivityStatus.EARLY_OUT : ActivityStatus.CLOCKED_OUT, when: row.clockOut || undefined };
@@ -39,7 +39,7 @@ export const deriveStatus = (row: Attendance): { status: ActivityStatus; when?: 
 	}
 };
 
-export const buildViewFromRow = (row: Attendance, nameFallback?: string, image?: string | null): ViewItem => {
+export const buildViewFromRow = (row: Omit<Attendance, "_id">, nameFallback?: string, image?: string | null): ViewItem => {
 	const s = deriveStatus(row);
 	let subtitle = "";
 	let chipLabel = "";
