@@ -1,3 +1,4 @@
+import type { Attendance } from "@/lib/helpers/plugins/server/attendance";
 import { motion } from "framer-motion";
 import { Calendar, Clock, FileText, Users, Zap } from "lucide-react";
 import { useState } from "react";
@@ -34,7 +35,7 @@ const actions = [
 	}
 ];
 
-export default function QuickActions({ userData, orgData, refetchOrg }: { userData: { role: string, id: string }, orgData: FullOrganization, refetchOrg: () => void }) {
+export default function QuickActions({ userData, orgData, attendance, refetchOrg }: { userData: { role: string, id: string }, orgData: FullOrganization, attendance: Omit<Attendance, "_id">[], refetchOrg: () => void }) {
 	const [clockModalOpen, setClockModalOpen] = useState(false);
 	const [timeOffOpen, setTimeOffOpen] = useState(false);
 	const [reportOpen, setReportOpen] = useState(false);
@@ -152,7 +153,7 @@ export default function QuickActions({ userData, orgData, refetchOrg }: { userDa
 			</div>
 
 			{/* Modals / Sheets */}
-			<ClockInOutDialog open={clockModalOpen} onOpenChange={setClockModalOpen} userRole={userData.role} refetchOrg={refetchOrg} />
+			<ClockInOutDialog open={clockModalOpen} onOpenChange={setClockModalOpen} userRole={userData.role} attendance={attendance} />
 			<RequestTimeOffDialog open={timeOffOpen} onOpenChange={setTimeOffOpen} orgData={orgData} />
 			<GenerateReportDialog open={reportOpen} onOpenChange={setReportOpen} canGenerateOrgReport={canGenerateOrgReport} orgData={orgData} />
 			<ManageTeamSheet open={teamOpen} onOpenChange={setTeamOpen} orgData={orgData} currentUserId={userData.id} refetchOrg={refetchOrg} />

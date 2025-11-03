@@ -3,21 +3,20 @@
 import CreateOrganizationDialog from "@/components/dashboard/CreateOrgDialog";
 import HomeSection from "@/components/dashboard/Home";
 import OrganizationSettings from "@/components/dashboard/Organization";
-import QuickActions from "@/components/dashboard/QuickActions";
 import DashboardSidebar from "@/components/dashboard/Sidebar";
 import { DashboardSkeleton } from "@/components/dashboard/skeleton";
 import MinimalHeader from "@/components/Header";
 import SettingsPage from "@/components/settings/SettingsTabs";
 import { authClient } from "@/lib/auth-client";
 import { useConvexAuth } from "convex/react";
-import { Building2Icon, CalendarIcon, ClockIcon, HomeIcon, Loader2, SettingsIcon, UsersIcon, Zap } from "lucide-react";
+import { Building2Icon, CalendarIcon, ClockIcon, HomeIcon, Loader2, SettingsIcon, UsersIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
-export type SidebarActions = "home" | "time-tracking" | "schedule" | "team" | "reports" | "quick-actions" | "settings" | "organization";
+export type SidebarActions = "home" | "time-tracking" | "schedule" | "team" | "reports" | "settings" | "organization";
 
-const sidebarSchema = z.enum(["home", "time-tracking", "schedule", "team", "reports", "quick-actions", "settings", "organization"]);
+const sidebarSchema = z.enum(["home", "time-tracking", "schedule", "team", "reports", "settings", "organization"]);
 
 export default function DashboardPage() {
 	const { isLoading, isAuthenticated } = useConvexAuth();
@@ -141,8 +140,6 @@ export default function DashboardPage() {
 				return <div className="p-4">Team Page</div>;
 			case "reports":
 				return <div className="p-4">Reports Page</div>;
-			case "quick-actions":
-				return <QuickActions userData={{ role: activeMember?.role || "", id: activeMember?.userId || "" }} orgData={currentOrg as unknown as FullOrganization} refetchOrg={refetchCurrentOrg} />;
 			case "organization":
 				return (
 					<OrganizationSettings
@@ -195,7 +192,6 @@ export default function DashboardPage() {
 					{[
 						{ id: "home", label: "Home", icon: HomeIcon, role: null },
 						{ id: "time-tracking", label: "Time", icon: ClockIcon, role: null },
-						{ id: "quick-actions", label: "Actions", icon: Zap, role: null },
 						{ id: "schedule", label: "Schedule", icon: CalendarIcon, role: ["admin", "owner"] as const },
 						{ id: "organization", label: "Organization", icon: Building2Icon, role: ["admin", "owner"] as const },
 						{ id: "settings", label: "Settings", icon: SettingsIcon, role: null },

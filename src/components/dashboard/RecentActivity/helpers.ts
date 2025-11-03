@@ -49,38 +49,38 @@ export const buildViewFromRow = (row: Omit<Attendance, "_id">, nameFallback?: st
 	switch (s.status) {
 		case ActivityStatus.CLOCKED_OUT:
 			subtitle = "Clocked out";
-			chipLabel = row.earlyOut ? "approved" : "on-time";
+			chipLabel = row.earlyOut ? "Approved" : "On-time";
 			chipClass = row.earlyOut ? chipStyles.approved : chipStyles.onTime;
 			timeText = to12h(row.clockOut);
 			break;
 		case ActivityStatus.LUNCH_BREAK_ENDED:
 			subtitle = "Returned from break";
-			chipLabel = "on-time";
+			chipLabel = "On-time";
 			chipClass = chipStyles.onTime;
 			timeText = to12h(row.lunchBreakReturn);
 			break;
 		case ActivityStatus.LUNCH_BREAK_STARTED:
 			subtitle = "Break started";
-			chipLabel = "break";
+			chipLabel = "Break";
 			chipClass = chipStyles.break;
 			timeText = to12h(row.lunchBreakOut);
 			break;
 		case ActivityStatus.LATE:
 			subtitle = "Clocked in";
-			chipLabel = "late";
+			chipLabel = "Late";
 			chipClass = chipStyles.late;
 			timeText = to12h(row.clockIn);
 			break;
 		case ActivityStatus.CLOCKED_IN:
 			subtitle = "Clocked in";
-			chipLabel = "on-time";
+			chipLabel = "On-time";
 			chipClass = chipStyles.onTime;
 			timeText = to12h(row.clockIn);
 			break;
 		case ActivityStatus.TBR:
 		default:
 			subtitle = "No activity yet";
-			chipLabel = "pending";
+			chipLabel = "Pending";
 			chipClass = chipStyles.pending;
 			break;
 	}

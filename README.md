@@ -86,9 +86,9 @@ You can run Jelli on your own machine for testing or contribution.
 We have a clear vision for Jelli's future. Here is a general outline of our goals.
 
 *   **Phase 1: Alpha (Current)**
-    *   [ ] Core clock-in / clock-out functionality.
-    *   [ ] Basic user and organization management.
-    *   [ ] Foundational UI/UX based on our design system.
+    *   [X] Core clock-in / clock-out functionality.
+    *   [X] Basic user and organization management.
+    *   [X] Foundational UI/UX based on our design system.
     *   [ ] Initial setup for self-hosting.
 
 *   **Phase 2: Beta**

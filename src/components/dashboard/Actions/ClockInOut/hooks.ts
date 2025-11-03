@@ -1,5 +1,4 @@
 import { authClient } from "@/lib/auth-client";
-import dayjs from "dayjs";
 import React from "react";
 import type { AttendanceRow, LocationStatus, UserLocation } from "./types";
 
@@ -11,18 +10,8 @@ export function useAttendanceToday(orgId: string, enabled: boolean) {
 
 		const fetchTodayAttendance = async () => {
 			try {
-
 				await authClient.getAttendance(
-					{
-						orgId,
-						dateInterval: {
-							start: dayjs().startOf("day").toDate(),
-							end: dayjs().endOf("day").toDate(),
-						},
-						limit: 1,
-						offset: 0,
-						sort: "desc",
-					},
+					undefined,
 					{
 						onSuccess: (data) => {
 							const row = data.data?.[0] as AttendanceRow;

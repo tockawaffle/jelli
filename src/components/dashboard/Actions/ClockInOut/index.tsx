@@ -5,14 +5,21 @@ import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { authClient } from "@/lib/auth-client";
 import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import { motion } from "framer-motion";
-import { AlertCircle, CheckCircle2, Clock, FileTextIcon, MapPin, QrCode, Settings, SmartphoneNfc } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2, Clock, FileTextIcon, MapPin, QrCode, Settings, SmartphoneNfc } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { METHOD_OPTIONS } from "./constants";
-import { useAttendanceToday, useLocationPermission } from "./hooks";
-import type { AttendanceRow, ClockInOutMethod, ControlledProps, RequestType } from "./types";
+import { useLocationPermission } from "./hooks";
+import type { ClockInOutMethod, ControlledProps, RequestType } from "./types";
 import { calculateDistance, getDisabledMap, getRecommendationReason, getRecommendedType, isWithinRange } from "./utils";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(duration);
 
 export default function ClockInOutDialog({
 	open,
@@ -20,24 +27,37 @@ export default function ClockInOutDialog({
 	error,
 	userRole,
 	hasRegisteredDevice = false,
-	refetchOrg
+	attendance
 }: ControlledProps) {
 	const [method, setMethod] = useState<ClockInOutMethod>("request");
 	const [requestType, setRequestType] = useState<RequestType>("clock-in");
 	const { data: activeOrg } = authClient.useActiveOrganization();
 
-	const todayRow = useAttendanceToday(activeOrg?.id ?? "", open);
+	const orgMetadata: OrgMetadata = typeof activeOrg?.metadata === "string" ? JSON.parse(activeOrg?.metadata) : activeOrg?.metadata;
+
+	const now = dayjs().tz(orgMetadata.hours.timezone);
+	const startOfDay = now.startOf('day');
+	const closingTime = startOfDay.format('YYYY-MM-DD') + ` ${orgMetadata.hours.close}`;
+	const closingTimeDate = dayjs(closingTime).tz(orgMetadata.hours.timezone);
+	const gracePeriod = orgMetadata.hours.gracePeriod;
+	const closingTimeMinusGracePeriod = closingTimeDate.subtract(dayjs.duration(gracePeriod, "minutes"));
+	const isBefore = now.isBefore(closingTimeMinusGracePeriod);
 
 	const { locationStatus, userLocation, requestLocationPermission } = useLocationPermission(open);
 
-	const status: string = (todayRow as any)?.status ?? "NONE";
+	const status: string = (attendance[0])?.status ?? "NONE";
 	const disabledMap = getDisabledMap(status);
 
 	useEffect(() => {
+		console.log(isBefore);
+		console.log(closingTime)
+	}, [now, closingTime, gracePeriod]);
+
+	useEffect(() => {
 		if (method === "request") {
-			setRequestType(getRecommendedType(todayRow as AttendanceRow));
+			setRequestType(getRecommendedType(attendance[0]));
 		}
-	}, [method, todayRow]);
+	}, [method, attendance]);
 
 	useEffect(() => {
 		if (locationStatus === "granted" && !userLocation) {
@@ -79,7 +99,34 @@ export default function ClockInOutDialog({
 								{error}
 							</motion.div>
 						)}
-
+						{
+							requestType === "clock-out" && now.isAfter(closingTimeMinusGracePeriod) && (
+								<motion.div
+									className="bg-warning/10 border border-warning/20 text-warning p-4 rounded-lg text-sm flex items-center gap-2"
+									initial={{ opacity: 0, y: -10 }}
+									animate={{ opacity: 1, y: 0 }}
+									role="alert"
+									aria-live="polite"
+								>
+									<AlertTriangle className="h-4 w-4 shrink-0" />
+									The grace period for clocking out has ended. Create a request instead to clock out.
+								</motion.div>
+							)
+						}
+						{
+							requestType === "clock-out" && now.isBefore(closingTimeMinusGracePeriod) && (
+								<motion.div
+									className="bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-lg text-sm flex items-center gap-2"
+									initial={{ opacity: 0, y: -10 }}
+									animate={{ opacity: 1, y: 0 }}
+									role="alert"
+									aria-live="polite"
+								>
+									<AlertTriangle className="h-4 w-4 shrink-0" />
+									Are you sure you want to clock out early? This action is irreversible and will be recorded as an early out.
+								</motion.div>
+							)
+						}
 						{/* Method Selection */}
 						<motion.div
 							className="space-y-4"
@@ -165,7 +212,7 @@ export default function ClockInOutDialog({
 												requestType.replaceAll("-", " ").charAt(0).toUpperCase() + requestType.replaceAll("-", " ").slice(1)
 											}
 										</Badge>
-										<span className="text-xs text-muted-foreground">— {getRecommendationReason(todayRow as AttendanceRow, requestType)}</span>
+										<span className="text-xs text-muted-foreground">— {getRecommendationReason(attendance[0], requestType, now, orgMetadata)}</span>
 									</div>
 									<div className="text-xs text-muted-foreground">Now: {dayjs().format("h:mm A")} — Today ({dayjs().format("ddd, MMM D")})</div>
 									<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
@@ -229,7 +276,7 @@ export default function ClockInOutDialog({
 												<span className="px-2 py-0.5 rounded-md bg-accent-foreground text-foreground text-xs">
 													{requestType.replaceAll("-", " ")}
 												</span>
-												<span className="text-xs text-muted-foreground">— {getRecommendationReason(todayRow as AttendanceRow, requestType)}</span>
+												<span className="text-xs text-muted-foreground">— {getRecommendationReason(attendance[0], requestType, now, orgMetadata)}</span>
 											</div>
 										</div>
 									)}
@@ -319,9 +366,34 @@ export default function ClockInOutDialog({
 													toast.success("Lunch break started successfully");
 													onOpenChange(false);
 												},
-												onError: (error) => {
-													toast.error("Failed to start lunch break. Please try again.");
-													console.error(error);
+												onError: ({ error }) => {
+													if (error.code === "CLOCK_LS_OUT_OF_TIME") {
+														toast.error(error.message || "You cannot start lunch break after the grace period. Please try again.");
+														console.error(error);
+														return;
+													} else {
+														toast.error(error.message || "Failed to start lunch break. Please try again.");
+														console.error(error);
+														return;
+													}
+												}
+											});
+											break;
+										}
+										case "lunch-break-end": {
+											authClient.attendance.lunchReturn({}, {
+												onSuccess: () => {
+													toast.success("Welcome back from lunch! Hope it was refreshing.");
+													onOpenChange(false);
+												},
+												onError: ({ error }) => {
+													if (error.code === "CLOCK_LR_AFTER_TIME") {
+														toast.error(error.message || "You cannot return from lunch break after the grace period. Please try again.");
+													} else if (error.code === "CLOCK_LR_BEFORE_TIME") {
+														toast.error(error.message || "You cannot return from lunch break before the grace period. Please try again.");
+													} else {
+														toast.error(error.message || "Failed to end lunch break. Please try again.");
+													}
 												}
 											});
 											break;

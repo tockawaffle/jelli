@@ -144,6 +144,7 @@ export default function HomeSection({ currentOrg, session, activeMember, refetch
 						userData={{ role: userRole || "", id: user.id }}
 						orgData={currentOrg as unknown as FullOrganization}
 						refetchOrg={refetchOrg}
+						attendance={todayAttendance || []}
 					/>
 				</motion.div>
 			</div>

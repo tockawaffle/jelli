@@ -39,7 +39,7 @@ export const attendanceSchema = z.object({
 	operation: attendanceOperationSchema,
 }).strict()
 
-export const getAutoAttendanceQueryValidation = z.object({
+export const getAttendanceQueryValidation = z.object({
 	limit: z.coerce
 		.number("limit must be a valid number")
 		.int("limit must be an integer")

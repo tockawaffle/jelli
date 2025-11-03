@@ -180,9 +180,8 @@ export const createAuth = (ctx: GenericCtx) =>
 						"attendance-clock-in": "info",
 						"attendance-clock-out": "info",
 						"attendance-lunch-start": "info",
-						"attendance-lunch-end": "info",
+						"attendance-lunch-return": "info",
 					}
-
 				}
 			),
 			errorLocalization({

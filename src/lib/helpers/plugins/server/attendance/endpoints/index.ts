@@ -1,4 +1,5 @@
 export * from "./clockIn";
-export * from "./clockLunchStart";
+export * from "./clockOut";
 export * from "./getAttendance";
-export * from "./getAuto";
+export * from "./lunch/clockLunchReturn";
+export * from "./lunch/clockLunchStart";

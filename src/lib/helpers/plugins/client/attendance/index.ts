@@ -4,9 +4,10 @@ import { BetterFetchError, BetterFetchOption } from "better-auth/react";
 import dayjs from "dayjs";
 import { atom } from "nanostores";
 import { z } from "zod";
-import { Attendance, attendancePlugin } from "../../server/attendance";
+import type { Attendance } from "../../server/attendance";
+import { attendancePlugin } from "../../server/attendance";
 import { attendanceSchema } from "../../server/attendance/schemas/base";
-import { getAutoAttendanceQueryValidation } from "../../server/attendance/schemas/zod";
+import { getAttendanceQueryValidation } from "../../server/attendance/schemas/zod";
 
 export type Data<T> = {
 	data: T;
@@ -23,17 +24,6 @@ export type Error$1<E> = {
 	}>;
 };
 
-export const getAttendanceQueryValidation = z.object({
-	dateInterval: z.object({
-		start: z.coerce.date(),
-		end: z.coerce.date(),
-	}),
-	orgId: z.string(),
-	limit: z.coerce.number().int().min(1).max(100).optional().default(10),
-	offset: z.coerce.number().int().min(0).optional().default(0),
-	sort: z.enum(["asc", "desc"]).optional().default("desc"),
-	ids: z.array(z.string()).optional(),
-})
 
 export const attendanceActionValidation = z.object({
 	orgId: z.string(),
@@ -56,7 +46,7 @@ export const attendanceClientPlugin = () => {
 		refetch: () => { }
 	});
 
-	const $getAttendanceQuery = atom<z.infer<typeof getAutoAttendanceQueryValidation>>({
+	const $getAttendanceQuery = atom<z.infer<typeof getAttendanceQueryValidation>>({
 		limit: 100,
 		offset: 0,
 		sort: "desc",
@@ -73,43 +63,20 @@ export const attendanceClientPlugin = () => {
 			return {
 				/**
 				 * Get the attendance data for a given date interval, organization ID, limit, offset, and sort.
-				 * Prefer using `getAutoAttendance` instead of this method when possible.
-				 * @param query - The query parameters for the attendance API.
-				 * @param fetchOptions - The fetch options for the attendance API.
-				 * @returns A promise that resolves to the attendance data.
-				 */
-				getAttendance: async (
-					query: z.infer<typeof getAttendanceQueryValidation>,
-					fetchOptions?: BetterFetchOption,
-				): Promise<Data<z.infer<typeof attendanceSchema>[]>> => {
-					const searchParams = new URLSearchParams();
-					searchParams.set('dateInterval[start]', query.dateInterval.start.toISOString());
-					searchParams.set('dateInterval[end]', query.dateInterval.end.toISOString());
-					searchParams.set('orgId', query.orgId);
-					if (query.limit !== undefined) searchParams.set('limit', query.limit.toString());
-					if (query.offset !== undefined) searchParams.set('offset', query.offset.toString());
-					if (query.sort !== undefined) searchParams.set('sort', query.sort);
-					if (query.ids) searchParams.set('ids', query.ids.join(','));
-
-					const res = await $fetch("/attendance/get", {
-						method: "POST",
-						body: query,
-						...fetchOptions
-					})
-
-					return res as Data<z.infer<typeof attendanceSchema>[]>;
-				},
-				/**
-				 * Get the attendance data for a given date interval, organization ID, limit, offset, and sort.
 				 * This method is preferred over `getAttendance` when possible.
 				 * @param query - The query parameters for the attendance API.
 				 * @param fetchOptions - The fetch options for the attendance API.
 				 * @returns A promise that resolves to the attendance data.
 				 */
-				getAutoAttendance: async (query: z.infer<typeof getAutoAttendanceQueryValidation>, fetchOptions?: BetterFetchOption) => {
-					const res = await $fetch("/attendance/get-auto", {
+				getAttendance: async (query?: z.infer<typeof getAttendanceQueryValidation>, fetchOptions?: BetterFetchOption) => {
+					if (query) {
+						// I struggled to find how to pass query params to the query hook till I found out I can simply use a custom atom to set the query params.
+						$getAttendanceQuery.set(query);
+					}
+
+					const res = await $fetch("/attendance/get", {
 						method: "GET",
-						query: query,
+						query: $getAttendanceQuery.get(),
 						...fetchOptions
 					})
 
@@ -142,7 +109,7 @@ export const attendanceClientPlugin = () => {
 					return res
 				},
 				endLunchBreak: async (data: z.infer<typeof attendanceActionValidation>, fetchOptions?: BetterFetchOption) => {
-					const res = await $fetch("/attendance/lunch-end", {
+					const res = await $fetch("/attendance/lunch-return", {
 						method: "POST",
 						body: data,
 						...fetchOptions
@@ -155,7 +122,7 @@ export const attendanceClientPlugin = () => {
 		getAtoms: ($fetch) => {
 			const getAttendance = useAuthQuery<Omit<Attendance, "_id">[] | []>(
 				$getAttendance,
-				`/attendance/get-auto`,
+				`/attendance/get`,
 				$fetch,
 				{
 					method: "GET",
@@ -170,17 +137,16 @@ export const attendanceClientPlugin = () => {
 			}
 		},
 		pathMethods: {
-			"/attendance/get": "POST",
-			"/attendance/get-auto": "GET",
+			"/attendance/get": "GET",
 			"/attendance/clock-in": "POST",
 			"/attendance/clock-out": "POST",
 			"/attendance/lunch-start": "POST",
-			"/attendance/lunch-end": "POST"
+			"/attendance/lunch-return": "POST"
 		},
 		atomListeners: [
 			{
 				matcher(path) {
-					return ["/attendance/clock-in", "/attendance/clock-out", "/attendance/lunch-start", "/attendance/lunch-end"].includes(path)
+					return ["/attendance/clock-in", "/attendance/clock-out", "/attendance/lunch-start", "/attendance/lunch-return"].includes(path)
 				},
 				signal: "$getAttendance"
 			}

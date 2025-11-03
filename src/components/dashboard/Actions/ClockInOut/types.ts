@@ -1,3 +1,4 @@
+import type { Attendance } from "@/lib/helpers/plugins/server/attendance";
 export type ClockInOutMethod = "qr" | "request" | "nfc";
 
 export type RequestType =
@@ -24,7 +25,7 @@ export type ControlledProps = {
 	error?: string | null;
 	userRole: string;
 	hasRegisteredDevice?: boolean;
-	refetchOrg: () => void;
+	attendance: Omit<Attendance, "_id">[];
 };
 
 export type AttendanceRow = {

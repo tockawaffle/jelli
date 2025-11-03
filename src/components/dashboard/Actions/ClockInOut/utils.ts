@@ -1,5 +1,6 @@
+import { Attendance } from "@/lib/helpers/plugins/server/attendance";
 import { getDistance, isPointWithinRadius } from "geolib";
-import type { AttendanceRow, RequestType } from "./types";
+import type { RequestType } from "./types";
 
 /**
  * Calculate the distance between two coordinates
@@ -44,15 +45,24 @@ export function isWithinRange(
 	);
 }
 
-export function getRecommendationReason(row: AttendanceRow, type: RequestType): string {
+
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(duration);
+
+export function getRecommendationReason(row: Omit<Attendance, "_id">, type: RequestType, now: dayjs.Dayjs, orgMetadata: OrgMetadata): string {
 	if (!row) return "we haven't recorded any clock-in for today.";
 	switch (type) {
 		case "clock-in":
-			return row.clock_in ? "you already clocked in earlier today." : "you haven't clocked in yet today.";
+			return row.clockIn ? "you already clocked in earlier today." : "you haven't clocked in yet today.";
 		case "lunch-break-start":
-			return row.status === "CLOCKED_IN" ? `you are currently clocked in since ${row.clock_in || "--:--"}.` : "you're not clocked in.";
+			return row.status === "CLOCKED_IN" ? `you are currently clocked in since ${dayjs(row.clockIn).tz(orgMetadata.hours.timezone).format("h:mm A")}.` : "you're not clocked in.";
 		case "lunch-break-end":
-			return row.status === "LUNCH_BREAK_STARTED" ? `your lunch started at ${row.lunch_break_out || "--:--"}.` : "you haven't started lunch.";
+			return row.status === "LUNCH_BREAK_STARTED" ? `your lunch started at ${dayjs(row.lunchBreakOut).tz(orgMetadata.hours.timezone).format("h:mm A")}.` : "you haven't started lunch.";
 		case "clock-out":
 			return row.status === "LUNCH_BREAK_ENDED" || row.status === "CLOCKED_IN" ? "you're in a valid state to clock out." : "you must be clocked in (and ideally have ended lunch).";
 		default:
@@ -60,17 +70,17 @@ export function getRecommendationReason(row: AttendanceRow, type: RequestType): 
 	}
 }
 
-export function getRecommendedType(row: AttendanceRow): RequestType {
+export function getRecommendedType(row: Omit<Attendance, "_id">): RequestType {
 	if (!row) return "clock-in";
 	switch (row.status) {
 		case "TBR":
-			return row.clock_in ? "lunch-break-start" : "clock-in";
+			return row.clockIn ? "lunch-break-start" : "clock-in";
 		case "CLOCKED_IN":
-			return row.lunch_break_out ? "clock-out" : "lunch-break-start";
+			return row.lunchBreakOut ? "clock-out" : "lunch-break-start";
 		case "LUNCH_BREAK_STARTED":
 			return "lunch-break-end";
 		case "LUNCH_BREAK_ENDED":
-			return row.clocked_out ? "clock-in" : "clock-out";
+			return row.clockOut ? "clock-in" : "clock-out";
 		case "CLOCKED_OUT":
 		default:
 			return "clock-in";

@@ -194,6 +194,7 @@ export const tables = {
 	})
 		.index("userId", ["userId"])
 		.index("orgId", ["orgId"])
+		.index("ordId_date", ["orgId", "date"])
 };
 
 const schema = defineSchema(tables);

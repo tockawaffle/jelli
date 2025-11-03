@@ -205,6 +205,7 @@ const createOrganizationSchema = z.object({
 	metadata: z.object({
 		orgDescription: z.string().optional(),
 		strictLunchTime: z.boolean().optional(),
+		lunchTimeLimit: z.number().min(15, "Lunch time limit must be at least 15 minutes").optional(),
 		contactInfo: z.object({
 			mainMail: z.string().min(1, "Main email is required").email("Please enter a valid email"),
 			hrMail: z.string().min(1, "HR email is required").email("Please enter a valid email"),

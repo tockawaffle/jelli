@@ -70,8 +70,10 @@ export const clockOut = createAuthEndpoint("/attendance/clock-out", {
 
 	if (!member) throw new APIError("UNAUTHORIZED", { message: "User is not a member of the organization" });
 
-	const now = dayjs().tz(orgMetadata.hours.timezone).toDate();
-	const startOfDay = dayjs(now).tz(orgMetadata.hours.timezone).startOf('day').toDate();
+	// Keep as dayjs object in the organization's timezone
+	const now = dayjs().tz(orgMetadata.hours.timezone);
+	// Set the start of day in the organization's timezone
+	const startOfDay = now.startOf('day');
 
 	// Find today's attendance record
 	const attendance = await ctx.context.adapter.findOne<Attendance>({
@@ -90,29 +92,47 @@ export const clockOut = createAuthEndpoint("/attendance/clock-out", {
 			{
 				operator: "gte",
 				field: "date",
-				value: startOfDay.toISOString(),
+				value: startOfDay.format(),
 			},
 		]
 	});
 
 	if (!attendance) {
-		throw new APIError("BAD_REQUEST", { message: "No clock-in record found for today" });
+		throw new APIError("BAD_REQUEST", { message: "No clock-in record found for today", code: "CLOCK_OUT_NO_RECORD" });
 	}
 
 	if (attendance.status === "CLOCKED_OUT") {
-		throw new APIError("BAD_REQUEST", { message: "Already clocked out" });
+		throw new APIError("BAD_REQUEST", { message: "Already clocked out", code: "CLOCK_OUT_ALREADY" });
 	}
 
-	// Calculate work time
-	const clockInTime = dayjs(attendance.clockIn).tz(orgMetadata.hours.timezone).toDate();
-	const lunchBreakOut = attendance.lunchBreakOut ? dayjs(attendance.lunchBreakOut).tz(orgMetadata.hours.timezone).toDate() : null;
-	const lunchBreakReturn = attendance.lunchBreakReturn ? dayjs(attendance.lunchBreakReturn).tz(orgMetadata.hours.timezone).toDate() : null;
+	if (attendance.status === "LUNCH_BREAK_STARTED") {
+		throw new APIError("BAD_REQUEST", { message: "Cannot clock out while on lunch break. Please return from lunch first.", code: "CLOCK_OUT_ON_LUNCH" });
+	}
 
-	let totalWorkSeconds = dayjs(now).tz(orgMetadata.hours.timezone).diff(dayjs(clockInTime).tz(orgMetadata.hours.timezone), "seconds");
+	// Calculate if user is leaving early by comparing current time with closing time - grace period
+	const closingTime = startOfDay.format('YYYY-MM-DD') + ` ${orgMetadata.hours.close}`;
+	const closingTimeDate = dayjs(closingTime).tz(orgMetadata.hours.timezone);
+	const gracePeriod = orgMetadata.hours.gracePeriod;
+	const closingTimeMinusGracePeriod = closingTimeDate.subtract(dayjs.duration(gracePeriod, "minutes"));
+	const earlyOut = now.isBefore(closingTimeMinusGracePeriod);
+
+	// Calculate work time
+	const clockInTime = dayjs(attendance.clockIn).tz(orgMetadata.hours.timezone);
+	const lunchBreakOut = attendance.lunchBreakOut ? dayjs(attendance.lunchBreakOut).tz(orgMetadata.hours.timezone) : null;
+	const lunchBreakReturn = attendance.lunchBreakReturn ? dayjs(attendance.lunchBreakReturn).tz(orgMetadata.hours.timezone) : null;
+
+	let totalWorkSeconds = now.diff(clockInTime, "seconds");
 	let totalBreakSeconds = attendance.totalBreakSeconds || 0;
 
+	// Calculate lunch break duration
 	if (lunchBreakOut && lunchBreakReturn) {
-		totalBreakSeconds = dayjs(lunchBreakReturn).tz(orgMetadata.hours.timezone).diff(dayjs(lunchBreakOut).tz(orgMetadata.hours.timezone), "seconds");
+		// Completed lunch break
+		totalBreakSeconds = lunchBreakReturn.diff(lunchBreakOut, "seconds");
+		totalWorkSeconds -= totalBreakSeconds;
+	} else if (lunchBreakOut && !lunchBreakReturn) {
+		// This shouldn't happen due to status check above, but handle it for safety
+		// Currently on lunch break - calculate break time up to now
+		totalBreakSeconds = now.diff(lunchBreakOut, "seconds");
 		totalWorkSeconds -= totalBreakSeconds;
 	}
 
@@ -123,21 +143,22 @@ export const clockOut = createAuthEndpoint("/attendance/clock-out", {
 			{
 				operator: "eq",
 				field: "_id",
-				value: attendance._id,
+				value: (attendance as any).id,
 			}
 		],
 		update: {
-			clockOut: now.toISOString(),
+			clockOut: now.format(),
 			status: "CLOCKED_OUT",
 			totalWorkSeconds,
 			totalBreakSeconds,
+			earlyOut,
 			timesUpdated: (attendance.timesUpdated || 0) + 1,
 			operation: [
 				...(attendance.operation || []),
 				{
 					id: crypto.randomUUID(),
 					type: operationType,
-					createdAt: now.toISOString(),
+					createdAt: now.format(),
 				}
 			],
 		}
