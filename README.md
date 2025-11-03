@@ -89,6 +89,7 @@ We have a clear vision for Jelli's future. Here is a general outline of our goal
     *   [X] Core clock-in / clock-out functionality.
     *   [X] Basic user and organization management.
     *   [X] Foundational UI/UX based on our design system.
+    *   [ ] Add support for other languages (Portuguese and English).
     *   [ ] Initial setup for self-hosting.
 
 *   **Phase 2: Beta**
