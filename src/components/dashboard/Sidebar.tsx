@@ -6,6 +6,7 @@ import { Session, User } from "better-auth";
 import { Invitation, Member, Organization } from "better-auth/plugins";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, BarChartIcon, BookIcon, Building2Icon, CalendarIcon, Check, ClockIcon, HomeIcon, LogOutIcon, Plus, SettingsIcon, UsersIcon, Zap } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import Image from "next/image";
 import React from "react";
@@ -42,55 +43,56 @@ type SidebarProps = {
 	router: AppRouterInstance,
 	children: React.ReactNode,
 	activeMember: Member | null,
+	locale: ReturnType<typeof useTranslations<"Dashboard">>,
 }
 
 
-export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpen, selectedAction, setSelectedAction, router, children, activeMember }: SidebarProps) {
+export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpen, selectedAction, setSelectedAction, router, children, activeMember, locale }: SidebarProps) {
 	const navigationItems = [
 		{
-			label: "Home",
+			label: locale("Sidebar.Home"),
 			id: "home",
 			necessaryRole: null,
 			icon: <HomeIcon className="w-4 h-4" />,
 		},
 		{
-			label: "Time Tracking",
+			label: locale("Sidebar.Time Tracking"),
 			id: "time-tracking",
 			necessaryRole: null,
 			icon: <ClockIcon className="w-4 h-4" />,
 		},
 		{
-			label: "Schedule",
+			label: locale("Sidebar.Schedule"),
 			id: "schedule",
 			necessaryRole: ["admin", "owner"],
 			icon: <CalendarIcon className="w-4 h-4" />,
 		},
 		{
-			label: "Team",
+			label: locale("Sidebar.Team"),
 			id: "team",
 			necessaryRole: ["admin", "owner"],
 			icon: <UsersIcon className="w-4 h-4" />,
 		},
 		{
-			label: "Reports",
+			label: locale("Sidebar.Reports"),
 			id: "reports",
 			necessaryRole: null,
 			icon: <BarChartIcon className="w-4 h-4" />,
 		},
 		{
-			label: "Quick Actions",
+			label: locale("Sidebar.Quick Actions"),
 			id: "quick-actions",
 			necessaryRole: null,
 			icon: <Zap className="w-4 h-4" />,
 		},
 		{
-			label: "Organization",
+			label: locale("Sidebar.Organization"),
 			id: "organization",
 			necessaryRole: ["admin", "owner"],
 			icon: <Building2Icon className="w-4 h-4" />,
 		},
 		{
-			label: "Settings",
+			label: locale("Sidebar.Settings"),
 			id: "settings",
 			necessaryRole: null,
 			icon: <SettingsIcon className="w-4 h-4" />,
@@ -104,14 +106,14 @@ export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpe
 
 	const systemItems = [
 		{
-			label: "Documentation",
+			label: locale("Sidebar.System.Documentation"),
 			icon: <BookIcon className="w-4 h-4" />,
 			action: () => {
 				router.push("/docs");
 			}
 		},
 		{
-			label: "Logout",
+			label: locale("Sidebar.System.Logout"),
 			className: "hover:bg-destructive/90! text-destructive",
 			icon: <LogOutIcon className="w-4 h-4" />,
 			action: () => {
@@ -174,7 +176,7 @@ export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpe
 										</div>
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem disabled className="font-bold" value="switch-org">Switch Organization</SelectItem>
+										<SelectItem disabled className="font-bold" value="switch-org">{locale("Sidebar.Header.Switch Organization")}</SelectItem>
 										<SelectSeparator />
 										{userOrgs?.map((org, index) => (
 											<motion.div
@@ -203,7 +205,7 @@ export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpe
 												>
 													<Plus className="w-4 h-4" />
 												</motion.div>
-												Create Organization
+												{locale("Sidebar.Header.Create Organization")}
 											</Button>
 										</motion.div>
 									</SelectContent>
@@ -218,7 +220,7 @@ export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpe
 									animate={{ opacity: 1, y: 0 }}
 									transition={{ duration: 0.3, delay: 0.2 }}
 								>
-									<SidebarGroupLabel>Navigation</SidebarGroupLabel>
+									<SidebarGroupLabel>{locale("Sidebar.Navigation")}</SidebarGroupLabel>
 								</motion.div>
 
 								<SidebarGroupContent>
@@ -286,7 +288,7 @@ export default function DashboardSidebar({ userOrgs, currentOrg, session, setOpe
 									animate={{ opacity: 1, y: 0 }}
 									transition={{ duration: 0.3, delay: 0.5 }}
 								>
-									<SidebarGroupLabel>System</SidebarGroupLabel>
+									<SidebarGroupLabel>{locale("Sidebar.SystemTitle")}</SidebarGroupLabel>
 								</motion.div>
 
 								<SidebarGroupContent>

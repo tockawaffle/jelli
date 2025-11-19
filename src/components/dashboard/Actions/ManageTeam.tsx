@@ -32,7 +32,8 @@ type ControlledProps = {
 export default function ManageTeamSheet({ open, onOpenChange, error, orgData, currentUserId, refetchOrg }: ControlledProps) {
 
 	const { members, invitations } = orgData;
-	const { hours } = orgData.metadata;
+	const orgMetadata: OrgMetadata = typeof orgData.metadata === "string" ? JSON.parse(orgData.metadata) : orgData.metadata;
+	const { hours } = orgMetadata;
 
 	const handleMemberClick = (member: FullOrganization["members"][number]) => {
 		console.log(member);

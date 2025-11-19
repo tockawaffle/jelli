@@ -1,14 +1,16 @@
 import { motion } from "framer-motion";
 import { Activity, Sparkles, Users } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { GreetingData } from "./types";
 
 type HeroHeaderProps = {
 	currentGreeting: GreetingData;
 	organizationName: string;
 	memberCount: number;
+	locale: ReturnType<typeof useTranslations<"DashboardHome">>;
 };
 
-export function HeroHeader({ currentGreeting, organizationName, memberCount }: HeroHeaderProps) {
+export function HeroHeader({ currentGreeting, organizationName, memberCount, locale }: HeroHeaderProps) {
 	return (
 		<motion.div
 			className="relative overflow-hidden bg-linear-to-br from-primary/5 via-background to-accent/5 border-b border-border/50"
@@ -71,7 +73,7 @@ export function HeroHeader({ currentGreeting, organizationName, memberCount }: H
 								<h3 className="font-semibold text-foreground text-sm">{organizationName}</h3>
 								<p className="text-xs text-muted-foreground flex items-center gap-1">
 									<Users className="h-3 w-3" />
-									{memberCount} member{memberCount !== 1 ? 's' : ''}
+									{memberCount} {locale("Header.MemberCount", { plural: memberCount !== 1 ? 's' : '' })}
 								</p>
 							</div>
 						</div>

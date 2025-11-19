@@ -9,7 +9,7 @@ import { chipStyles } from "./constants";
 import { buildViewFromRow } from "./helpers";
 import type { Attendance, Member, RecentActivityProps, ViewItem } from "./types";
 
-export default function RecentActivity({ orgInfo, orgMembers, todayAttendance, userRole }: RecentActivityProps) {
+export default function RecentActivity({ orgMembers, todayAttendance, userRole, locale }: RecentActivityProps) {
 	const members = orgMembers ?? [];
 	const [selectedUser, setSelectedUser] = useState<{ attendance: Omit<Attendance, "_id">; member: Member } | null>(null);
 
@@ -58,8 +58,8 @@ export default function RecentActivity({ orgInfo, orgMembers, todayAttendance, u
 				items.push({
 					key: m.userId,
 					name: m.name ?? "",
-					subtitle: "No activity yet",
-					chipLabel: "No activity",
+					subtitle: locale("RecentActivity.NoActivity"),
+					chipLabel: locale("RecentActivity.NoActivity"),
 					chipClass: chipStyles.pending,
 					timeText: undefined,
 					sortKey: 0,
@@ -87,7 +87,7 @@ export default function RecentActivity({ orgInfo, orgMembers, todayAttendance, u
 
 			<Card className="min-h-[180px] h-full">
 				<CardHeader>
-					<CardTitle>Recent Team Activity</CardTitle>
+					<CardTitle>{locale("RecentActivity.Title")}</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<ScrollArea className="max-h-64 md:max-h-80 pr-1 gap-2">

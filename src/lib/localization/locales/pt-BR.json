@@ -1,0 +1,92 @@
+{
+	"Dashboard": {
+		"Sidebar": {
+			"Navigation": "Navegação",
+			"SystemTitle": "Sistema",
+			"Home": "Início",
+			"Time Tracking": "Gerenciar Horas",
+			"Schedule": "Agenda",
+			"Team": "Equipe",
+			"Reports": "Relatórios",
+			"Quick Actions": "Ações Rápidas",
+			"Organization": "Organização",
+			"Settings": "Configurações",
+			"System": {
+				"Documentation": "Documentação",
+				"Logout": "Sair"
+			},
+			"Header": {
+				"Switch Organization": "Trocar Organização",
+				"Create Organization": "Criar Organização"
+			}
+		}
+	},
+	"Header": {
+		"SearchPlaceholder": "Pesquisar membros da equipe, agendas...",
+		"Settings": "Configurações",
+		"Keyboard Shortcuts": "Atalhos de teclado",
+		"Theme": "Tema",
+		"Sign Out": "Sair"
+	},
+	"DashboardHome": {
+		"Header": {
+			"NoActivityYet": "Ainda não há atividade, continue produtivo!",
+			"EverythingIsGoingWell": "Tudo está indo bem, continue assim!",
+			"Greeting": {
+				"Morning": "Bom dia, {name}!",
+				"Afternoon": "Boa tarde, {name}!",
+				"Evening": "Boa noite, {name}!",
+				"Night": "Boa noite, {name}!"
+			},
+			"MemberCount": "Membro{plural}"
+		},
+		"Stats": {
+			"ActiveMembersCard": {
+				"Title": "Membros ativos",
+				"More": "a mais",
+				"Less": "a menos",
+				"MoreThanYesterday": "{amount} {moreOrLess} que ontem",
+				"LessThanYesterday": "{amount} {moreOrLess} que ontem"
+			},
+			"AverageHoursTodayCard": {
+				"Title": "Média de horas hoje",
+				"Description": "{amount} membros estão presente hoje"
+			},
+			"AttendanceRateCard": {
+				"Title": "Taxa de presença",
+				"Description": "{amount}% {moreOrLess} que ontem",
+				"More": "a mais",
+				"Less": "a menos",
+				"MoreThanYesterday": "{amount} {moreOrLess} que ontem",
+				"LessThanYesterday": "{amount} {moreOrLess} que ontem"
+			},
+			"ScheduledTodayCard": {
+				"Title": "Agendado para Hoje",
+				"Description": "{amount} solicitações de folga"
+			}
+		},
+		"TeamStatus": {
+			"Title": "Status da Equipe",
+			"Active": "Ativo",
+			"Break": "Almoço",
+			"Offline": "Desconectado",
+			"NotClockedIn": "Não registrado"
+		},
+		"RecentActivity": {
+			"Title": "Atividade Recente",
+			"NoActivity": "Nenhuma atividade"
+		},
+		"QuickActions": {
+			"Title": "Ações Rápidas",
+			"Description": "Acesso rápido a tarefas comuns",
+			"ClockInOut": "Registrar Ponto",
+			"ClockInOutDescription": "Rápido controle de ponto",
+			"RequestTimeOff": "Solicitar Folga",
+			"RequestTimeOffDescription": "Solicitação de folga",
+			"GenerateReport": "Gerar Relatório",
+			"GenerateReportDescription": "Relatório de horas",
+			"ManageTeam": "Gerenciar Equipe",
+			"ManageTeamDescription": "Adicionar ou editar membros da equipe"
+		}
+	}
+}

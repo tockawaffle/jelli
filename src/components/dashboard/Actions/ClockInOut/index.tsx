@@ -10,7 +10,7 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { motion } from "framer-motion";
 import { AlertCircle, AlertTriangle, CheckCircle2, Clock, FileTextIcon, MapPin, QrCode, Settings, SmartphoneNfc } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { METHOD_OPTIONS } from "./constants";
 import { useLocationPermission } from "./hooks";
@@ -35,23 +35,31 @@ export default function ClockInOutDialog({
 
 	const orgMetadata: OrgMetadata = typeof activeOrg?.metadata === "string" ? JSON.parse(activeOrg?.metadata) : activeOrg?.metadata;
 
-	const now = dayjs().tz(orgMetadata.hours.timezone);
-	const startOfDay = now.startOf('day');
-	const closingTime = startOfDay.format('YYYY-MM-DD') + ` ${orgMetadata.hours.close}`;
-	const closingTimeDate = dayjs(closingTime).tz(orgMetadata.hours.timezone);
-	const gracePeriod = orgMetadata.hours.gracePeriod;
-	const closingTimeMinusGracePeriod = closingTimeDate.subtract(dayjs.duration(gracePeriod, "minutes"));
-	const isBefore = now.isBefore(closingTimeMinusGracePeriod);
+	const ClockData = useMemo(() => {
+		const { close, gracePeriod, timezone } = orgMetadata.hours;
+
+		const now = dayjs().tz(timezone);
+		const startOfDay = now.startOf('day');
+		const closingTime = startOfDay.format('YYYY-MM-DD') + ` ${close}`;
+		const closingTimeDate = dayjs(closingTime).tz(timezone);
+		const closingTimeMinusGracePeriod = closingTimeDate.subtract(dayjs.duration(gracePeriod, "minutes"));
+		const isBefore = now.isBefore(closingTimeMinusGracePeriod);
+
+		return {
+			now,
+			startOfDay,
+			closingTime,
+			closingTimeDate,
+			closingTimeMinusGracePeriod,
+			isBefore,
+			isAfter: !isBefore,
+		};
+	}, [orgMetadata]);
 
 	const { locationStatus, userLocation, requestLocationPermission } = useLocationPermission(open);
 
 	const status: string = (attendance[0])?.status ?? "NONE";
 	const disabledMap = getDisabledMap(status);
-
-	useEffect(() => {
-		console.log(isBefore);
-		console.log(closingTime)
-	}, [now, closingTime, gracePeriod]);
 
 	useEffect(() => {
 		if (method === "request") {
@@ -100,7 +108,7 @@ export default function ClockInOutDialog({
 							</motion.div>
 						)}
 						{
-							requestType === "clock-out" && now.isAfter(closingTimeMinusGracePeriod) && (
+							requestType === "clock-out" && ClockData.isAfter && (
 								<motion.div
 									className="bg-warning/10 border border-warning/20 text-warning p-4 rounded-lg text-sm flex items-center gap-2"
 									initial={{ opacity: 0, y: -10 }}
@@ -114,7 +122,7 @@ export default function ClockInOutDialog({
 							)
 						}
 						{
-							requestType === "clock-out" && now.isBefore(closingTimeMinusGracePeriod) && (
+							requestType === "clock-out" && ClockData.isBefore && (
 								<motion.div
 									className="bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-lg text-sm flex items-center gap-2"
 									initial={{ opacity: 0, y: -10 }}
@@ -123,7 +131,7 @@ export default function ClockInOutDialog({
 									aria-live="polite"
 								>
 									<AlertTriangle className="h-4 w-4 shrink-0" />
-									Are you sure you want to clock out early? This action is irreversible and will be recorded as an early out.
+									Are you sure you want to clock out early? This action is irreversible and will be recorded as an early out. To correct this, create a request to clock out.
 								</motion.div>
 							)
 						}
@@ -212,7 +220,7 @@ export default function ClockInOutDialog({
 												requestType.replaceAll("-", " ").charAt(0).toUpperCase() + requestType.replaceAll("-", " ").slice(1)
 											}
 										</Badge>
-										<span className="text-xs text-muted-foreground">— {getRecommendationReason(attendance[0], requestType, now, orgMetadata)}</span>
+										<span className="text-xs text-muted-foreground">— {getRecommendationReason(attendance[0], requestType, ClockData.now, orgMetadata)}</span>
 									</div>
 									<div className="text-xs text-muted-foreground">Now: {dayjs().format("h:mm A")} — Today ({dayjs().format("ddd, MMM D")})</div>
 									<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
@@ -276,7 +284,7 @@ export default function ClockInOutDialog({
 												<span className="px-2 py-0.5 rounded-md bg-accent-foreground text-foreground text-xs">
 													{requestType.replaceAll("-", " ")}
 												</span>
-												<span className="text-xs text-muted-foreground">— {getRecommendationReason(attendance[0], requestType, now, orgMetadata)}</span>
+												<span className="text-xs text-muted-foreground">— {getRecommendationReason(attendance[0], requestType, ClockData.now, orgMetadata)}</span>
 											</div>
 										</div>
 									)}
@@ -303,7 +311,7 @@ export default function ClockInOutDialog({
 						{method === "request" && (
 							<Button
 								className="gap-2"
-								disabled={locationStatus === "denied" || locationStatus === "error" || locationStatus === "idle" || locationStatus === "checking" || !userLocation}
+								disabled={locationStatus === "denied" || locationStatus === "error" || locationStatus === "idle" || locationStatus === "checking" || !userLocation || ClockData.isBefore}
 								onClick={() => {
 									if (!activeOrg) return;
 									const orgMetadata = typeof activeOrg.metadata === "string" ? JSON.parse(activeOrg.metadata) : activeOrg.metadata;

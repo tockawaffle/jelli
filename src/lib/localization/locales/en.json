@@ -1,0 +1,18 @@
+{
+	"Dashboard": {
+		"Sidebar": {
+			"Home": "Home",
+			"Time Tracking": "Time Tracking",
+			"Schedule": "Schedule",
+			"Team": "Team",
+			"Reports": "Reports",
+			"Quick Actions": "Quick Actions",
+			"Organization": "Organization",
+			"Settings": "Settings",
+			"System": {
+				"Documentation": "Documentation",
+				"Logout": "Logout"
+			}
+		}
+	}
+}

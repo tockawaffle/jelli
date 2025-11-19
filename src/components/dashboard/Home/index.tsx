@@ -5,21 +5,19 @@ import TeamStatus from "@/components/dashboard/TeamStatus";
 import type { User } from "better-auth";
 import { useQuery } from "convex/react";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { api } from "../../../../convex/_generated/api";
 import { HeroHeader } from "./HeroHeader";
 import { useAttendanceData } from "./hooks";
-import { SessionOutOfSyncDialog } from "./SessionOutOfSyncDialog";
 import { HomeSectionProps } from "./types";
 import { calculateStats, getGreeting, getUserName } from "./utils";
 
 // FullOrganization type is defined in globals.d.ts
 
 export default function HomeSection({ currentOrg, session, activeMember, refetchOrg }: HomeSectionProps) {
+	const locale = useTranslations("DashboardHome");
 	if (!session) return null;
-	if (!activeMember || !currentOrg) {
-		return <SessionOutOfSyncDialog />;
-	}
 
 	const { user } = session;
 
@@ -47,7 +45,8 @@ export default function HomeSection({ currentOrg, session, activeMember, refetch
 			todayAttendance,
 			yesterdayAttendance,
 			members?.page?.length ?? 0,
-			scheduledTimeOff ?? undefined
+			scheduledTimeOff ?? undefined,
+			locale
 		);
 	}, [orgInfo, todayAttendance, yesterdayAttendance]);
 
@@ -55,7 +54,8 @@ export default function HomeSection({ currentOrg, session, activeMember, refetch
 		return getGreeting(
 			user as User & { metadata: { name: { firstName: string; lastName: string } } },
 			todayAttendance,
-			orgInfo?.members?.page?.length ?? 0
+			orgInfo?.members?.page?.length ?? 0,
+			locale
 		);
 	}, [user, todayAttendance, orgInfo]);
 
@@ -75,6 +75,7 @@ export default function HomeSection({ currentOrg, session, activeMember, refetch
 				currentGreeting={currentGreeting}
 				organizationName={currentOrg.name}
 				memberCount={currentOrg.members.length}
+				locale={locale}
 			/>
 
 			{/* Main Content */}
@@ -112,6 +113,7 @@ export default function HomeSection({ currentOrg, session, activeMember, refetch
 								}))}
 								todayAttendance={todayAttendance || []}
 								userRole={userRole}
+								locale={locale}
 							/>
 						</motion.div>
 						<motion.div
@@ -120,7 +122,6 @@ export default function HomeSection({ currentOrg, session, activeMember, refetch
 							transition={{ duration: 0.6, delay: 0.8 }}
 						>
 							<TeamStatus
-								orgInfo={orgInfo}
 								orgMembers={currentOrg.members.map(m => ({
 									userId: m.userId,
 									name: userName,
@@ -128,6 +129,7 @@ export default function HomeSection({ currentOrg, session, activeMember, refetch
 									image: m.user.image ?? undefined,
 								}))}
 								todayAttendance={todayAttendance || []}
+								locale={locale}
 							/>
 						</motion.div>
 					</motion.div>
@@ -145,6 +147,7 @@ export default function HomeSection({ currentOrg, session, activeMember, refetch
 						orgData={currentOrg as unknown as FullOrganization}
 						refetchOrg={refetchOrg}
 						attendance={todayAttendance || []}
+						locale={locale}
 					/>
 				</motion.div>
 			</div>

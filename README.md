@@ -89,6 +89,14 @@ We have a clear vision for Jelli's future. Here is a general outline of our goal
     *   [X] Core clock-in / clock-out functionality.
     *   [X] Basic user and organization management.
     *   [X] Foundational UI/UX based on our design system.
+    *   [ ] Simple UAC with roles.
+    *   [ ] Clock-in/out with NFC functionality.
+        *   [ ] Core application with reading/writing functionality to cards
+        *   [ ] Authentication methods with BetterAuth
+        *   [ ] Communication with the API with correct usage
+        *   [ ] Testing and making it more robust
+    *   [ ] Clock-in/out with QRCode reading functionality.
+    *   [ ] Clock-on/out requests with approval.
     *   [ ] Add support for other languages (Portuguese and English).
     *   [ ] Initial setup for self-hosting.
 

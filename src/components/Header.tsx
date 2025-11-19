@@ -17,6 +17,7 @@ import { User } from "better-auth"
 import { Organization } from "better-auth/plugins/organization"
 import { useQuery } from "convex/react"
 import { BellIcon, CommandIcon, LogOutIcon, MoonIcon, Search, SearchIcon, SunIcon, User2Icon } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useTheme } from "next-themes"
 import Image from "next/image"
 import Link from "next/link"
@@ -34,6 +35,7 @@ type MinimalHeaderProps = {
 export default function MinimalHeader({ user, organization }: MinimalHeaderProps) {
 	const { theme, setTheme } = useTheme()
 	const router = useRouter()
+	const locale = useTranslations("Header")
 
 	const [latestProfileImage, setLatestProfileImage] = useState<string | null>(user ? user.image || null : null)
 
@@ -89,7 +91,7 @@ export default function MinimalHeader({ user, organization }: MinimalHeaderProps
 			<div className="hidden flex-1 md:flex items-center justify-center px-6">
 				<div className="relative w-full max-w-sm">
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-					<Input placeholder="Search team members, schedules..." className="pl-10 bg-muted/50" type="text" />
+					<Input placeholder={locale("SearchPlaceholder")} className="pl-10 bg-muted/50" type="text" />
 				</div>
 			</div>
 
@@ -141,17 +143,17 @@ export default function MinimalHeader({ user, organization }: MinimalHeaderProps
 							asChild
 						>
 							<Link className="w-full pl-2" href={`/${user?.name}/settings`} prefetch={true}>
-								Settings
+								{locale("Settings")}
 							</Link>
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem className="h-[40px] cursor-pointer text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-150 rounded-md flex flex-row items-center justify-between px-2">
-							<span>Keyboard Shortcuts</span>
+							<span>{locale("Keyboard Shortcuts")}</span>
 							<CommandIcon className="size-4 ml-2" />
 						</DropdownMenuItem>
 						{/* Theme Selector */}
 						<DropdownMenuItem className="h-[40px] cursor-pointer text-muted-foreground! transition-colors duration-150 rounded-md flex flex-row items-center justify-between px-2 hover:bg-transparent! hover:cursor-default">
-							<span>Theme</span>
+							<span>{locale("Theme")}</span>
 							<ToggleGroup
 								type="single"
 								value={theme}
@@ -179,7 +181,7 @@ export default function MinimalHeader({ user, organization }: MinimalHeaderProps
 							onClick={handleSignOut}
 							className="h-[40px] cursor-pointer text-muted-foreground hover:text-primary bg-destructive/50 hover:bg-destructive/80! transition-colors duration-150 rounded-md flex flex-row items-center justify-between px-2"
 						>
-							Sign Out
+							{locale("Sign Out")}
 							<LogOutIcon className="size-4 ml-2" />
 						</DropdownMenuItem>
 					</DropdownMenuContent>

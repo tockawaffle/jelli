@@ -1,4 +1,5 @@
 import type { Attendance } from "@/lib/helpers/plugins/server/attendance";
+import { useTranslations } from "next-intl";
 export type { Attendance };
 export type Member = {
 	userId: string;
@@ -22,5 +23,6 @@ export type RecentActivityProps = {
 	orgMembers?: Member[];
 	todayAttendance: Omit<Attendance, "_id">[];
 	userRole?: string;
+	locale: ReturnType<typeof useTranslations<"DashboardHome">>;
 };
 

@@ -2,26 +2,33 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Id } from "@/convex/_generated/dataModel";
 import type { Attendance } from "@/lib/helpers/plugins/server/attendance";
+import { useQuery } from "convex/react";
 import dayjs from "dayjs";
+import { useTranslations } from "next-intl";
+import { api } from "../../../convex/_generated/api";
 
 type TeamStatusProps = {
-	orgInfo?: OrgInfo | null;
 	orgMembers?: { userId: string; name: string | null; role?: string | null; image?: string | null }[];
 	todayAttendance: Omit<Attendance, "_id">[];
+	locale: ReturnType<typeof useTranslations<"DashboardHome">>;
 };
 
 type StatusKey = "active" | "break" | "offline";
 
-const statusMeta: Record<StatusKey, { label: string; dot: string; badgeClass: string }> = {
-	active: { label: "Active", dot: "bg-primary", badgeClass: "bg-primary/10 text-primary border-primary/20" },
-	break: { label: "Break", dot: "bg-accent", badgeClass: "bg-accent text-accent-foreground border-transparent" },
-	offline: { label: "Offline", dot: "bg-muted", badgeClass: "bg-muted text-foreground border-border" },
-};
 
-export default function TeamStatus({ orgInfo, orgMembers = [], todayAttendance }: TeamStatusProps) {
+
+export default function TeamStatus({ orgMembers = [], todayAttendance, locale }: TeamStatusProps) {
 	const attendanceByUserId = new Map<string, Omit<Attendance, "_id">>();
 	for (const row of todayAttendance) attendanceByUserId.set(row.userId, row);
+
+
+	const statusMeta: Record<StatusKey, { label: string; dot: string; badgeClass: string }> = {
+		active: { label: locale("TeamStatus.Active"), dot: "bg-primary", badgeClass: "bg-primary/10 text-primary border-primary/20" },
+		break: { label: locale("TeamStatus.Break"), dot: "bg-accent", badgeClass: "bg-accent text-accent-foreground border-transparent" },
+		offline: { label: locale("TeamStatus.Offline"), dot: "bg-muted", badgeClass: "bg-muted text-foreground border-border" },
+	};
 
 	const isValidDate = (dateString?: string) => {
 		if (!dateString || dateString === "" || dateString === "0") return false;
@@ -35,7 +42,7 @@ export default function TeamStatus({ orgInfo, orgMembers = [], todayAttendance }
 	};
 
 	const derive = (row?: Omit<Attendance, "_id">): { status: StatusKey; when?: string; timeLabel?: string } => {
-		if (!row) return { status: "offline", timeLabel: "Not clocked in" };
+		if (!row) return { status: "offline", timeLabel: locale("TeamStatus.NotClockedIn") };
 		switch (row.status) {
 			case "CLOCKED_IN":
 				return { status: "active", when: row.clockIn, timeLabel: to12h(row.clockIn) };
@@ -47,12 +54,19 @@ export default function TeamStatus({ orgInfo, orgMembers = [], todayAttendance }
 				return { status: "offline", when: row.clockOut, timeLabel: to12h(row.clockOut) };
 			case "TBR":
 			default:
-				return { status: "offline", timeLabel: "Not clocked in" };
+				return { status: "offline", timeLabel: locale("TeamStatus.NotClockedIn") };
 		}
 	};
 
 	const items = orgMembers.map((m) => {
 		const row = attendanceByUserId.get(m.userId);
+		let imageUrl = m.image;
+		if (m.image && m.image !== "") {
+			const image = useQuery(api.files.get, { storageId: m.image as Id<"_storage"> });
+			if (image?.url) {
+				imageUrl = image.url;
+			}
+		}
 		const d = derive(row);
 		return {
 			key: m.userId,
@@ -60,7 +74,7 @@ export default function TeamStatus({ orgInfo, orgMembers = [], todayAttendance }
 			role: m.role ?? "",
 			status: d.status as StatusKey,
 			timeText: d.timeLabel,
-			image: m.image,
+			image: imageUrl,
 			sortKey: row?.timesUpdated ?? 0,
 		};
 	});
@@ -82,7 +96,7 @@ export default function TeamStatus({ orgInfo, orgMembers = [], todayAttendance }
 			<CardHeader>
 				<div className="flex flex-col gap-2">
 					<div className="flex items-center justify-between gap-3">
-						<CardTitle>Team Status</CardTitle>
+						<CardTitle>{locale("TeamStatus.Title")}</CardTitle>
 						{/* Desktop / medium+: inline chips with wrapping */}
 						<div className="hidden md:flex items-center gap-2 flex-wrap justify-end">
 							<Badge variant="outline" className={statusMeta.active.badgeClass}>

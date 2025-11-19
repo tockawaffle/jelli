@@ -1,6 +1,7 @@
 import { ConvexClientProvider } from "@/lib/providers/Convex";
 import { ThemeProvider } from "@/lib/providers/Theme";
 import type { Metadata } from "next";
+import { NextIntlClientProvider } from 'next-intl';
 import { Toaster } from "sonner";
 import "./globals.css";
 
@@ -29,7 +30,9 @@ export default function RootLayout({
 						enableSystem
 						disableTransitionOnChange
 					>
-						{children}
+						<NextIntlClientProvider>
+							{children}
+						</NextIntlClientProvider>
 						<Toaster richColors />
 					</ThemeProvider>
 				</ConvexClientProvider>

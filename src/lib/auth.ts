@@ -1,10 +1,11 @@
+import { DataModel, Id } from "@/convex/_generated/dataModel";
+import { GenericCtx } from "@convex-dev/better-auth";
 import { convex } from "@convex-dev/better-auth/plugins";
 import { APIError, betterAuth } from "better-auth";
 import { localization as errorLocalization } from "better-auth-localization";
 import { createAuthMiddleware, deviceAuthorization, haveIBeenPwned, lastLoginMethod, openAPI, organization, twoFactor } from "better-auth/plugins";
 import { fetchAction, fetchQuery } from "convex/nextjs";
 import { api } from "../../convex/_generated/api";
-import { type GenericCtx } from "../../convex/_generated/server";
 import { authComponent } from "../../convex/auth";
 import { getFullOrganizationMiddleware } from "./helpers/middlewares";
 import { attendancePlugin } from "./helpers/plugins/server/attendance";
@@ -13,7 +14,7 @@ import { userHelpersPlugin } from "./helpers/plugins/server/user_helpers";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
-export const createAuth = (ctx: GenericCtx) =>
+export const createAuth = (ctx: GenericCtx<DataModel>) =>
 	betterAuth({
 		baseURL: siteUrl,
 		secret: process.env.BETTER_AUTH_SECRET,
@@ -130,7 +131,7 @@ export const createAuth = (ctx: GenericCtx) =>
 						}
 
 						if (organization.logo && organization.logo.startsWith("storage_")) {
-							const url = await ctx.storage.getUrl(organization.logo as any);
+							const url = await ctx.storage.getUrl(organization.logo as Id<"_storage">);
 							organization.logo = url as string;
 						}
 
@@ -146,14 +147,20 @@ export const createAuth = (ctx: GenericCtx) =>
 					const inviteLink = `${siteUrl}/orgs/invite?id=${data.id}&invited=${data.email}`
 
 					// Gets the org avatar from the organization
-					const orgAvatar = await ctx.storage.getUrl(data.organization.logo as any)
+					let orgLogo = data.organization.logo || "";
+					if (orgLogo && orgLogo !== "") {
+						const url = await ctx.storage.getUrl(orgLogo as any);
+						if (url) {
+							orgLogo = url as string;
+						}
+					}
 
 					await fetchAction(api.emails.orgs.send, {
 						email: data.email,
 						invitedByUsername: data.inviter.user.name,
 						invitedByEmail: data.inviter.user.email,
 						orgName: data.organization.name,
-						orgAvatar: orgAvatar || "",
+						orgAvatar: orgLogo,
 						inviteLink
 					})
 				},

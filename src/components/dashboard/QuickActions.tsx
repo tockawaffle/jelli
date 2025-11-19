@@ -1,41 +1,14 @@
 import type { Attendance } from "@/lib/helpers/plugins/server/attendance";
 import { motion } from "framer-motion";
 import { Calendar, Clock, FileText, Users, Zap } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import ClockInOutDialog from "./Actions/ClockInOut";
 import GenerateReportDialog from "./Actions/GenerateReport";
 import ManageTeamSheet from "./Actions/ManageTeam";
 import RequestTimeOffDialog from "./Actions/RequesTimeOff";
 
-const actions = [
-	{
-		label: "Clock In/Out",
-		description: "Quick time tracking",
-		icon: Clock,
-		roles: [],
-	},
-	{
-		label: "Request Time Off",
-		description: "Submit leave request",
-		icon: Calendar,
-		roles: [],
-	},
-	/** @description This action creates a specific report for the user's organization. If the user is an admin or owner, they can generate a report for the entire organization. If the user is a member, they can generate a report of their own data.*/
-	{
-		label: "Generate Report",
-		description: "Create timesheet report",
-		roles: [],
-		icon: FileText,
-	},
-	{
-		label: "Manage Team",
-		description: "Add or edit team members",
-		roles: ["admin", "owner"],
-		icon: Users,
-	}
-];
-
-export default function QuickActions({ userData, orgData, attendance, refetchOrg }: { userData: { role: string, id: string }, orgData: FullOrganization, attendance: Omit<Attendance, "_id">[], refetchOrg: () => void }) {
+export default function QuickActions({ userData, orgData, attendance, refetchOrg, locale }: { userData: { role: string, id: string }, orgData: FullOrganization, attendance: Omit<Attendance, "_id">[], refetchOrg: () => void, locale: ReturnType<typeof useTranslations<"DashboardHome">> }) {
 	const [clockModalOpen, setClockModalOpen] = useState(false);
 	const [timeOffOpen, setTimeOffOpen] = useState(false);
 	const [reportOpen, setReportOpen] = useState(false);
@@ -43,6 +16,34 @@ export default function QuickActions({ userData, orgData, attendance, refetchOrg
 
 	const canManageTeam = ["admin", "owner"].includes(userData.role);
 	const canGenerateOrgReport = canManageTeam;
+
+	const actions = [
+		{
+			label: locale("QuickActions.ClockInOut"),
+			description: locale("QuickActions.ClockInOutDescription"),
+			icon: Clock,
+			roles: [],
+		},
+		{
+			label: locale("QuickActions.RequestTimeOff"),
+			description: locale("QuickActions.RequestTimeOffDescription"),
+			icon: Calendar,
+			roles: [],
+		},
+		/** @description This action creates a specific report for the user's organization. If the user is an admin or owner, they can generate a report for the entire organization. If the user is a member, they can generate a report of their own data.*/
+		{
+			label: locale("QuickActions.GenerateReport"),
+			description: locale("QuickActions.GenerateReportDescription"),
+			roles: [],
+			icon: FileText,
+		},
+		{
+			label: locale("QuickActions.ManageTeam"),
+			description: locale("QuickActions.ManageTeamDescription"),
+			roles: ["admin", "owner"],
+			icon: Users,
+		}
+	]
 
 	return (
 		<motion.div
@@ -63,8 +64,8 @@ export default function QuickActions({ userData, orgData, attendance, refetchOrg
 						<Zap className="h-5 w-5 text-primary" />
 					</div>
 					<div>
-						<h2 className="text-lg font-semibold text-foreground">Quick Actions</h2>
-						<p className="text-sm text-muted-foreground">Fast access to common tasks</p>
+						<h2 className="text-lg font-semibold text-foreground">{locale("QuickActions.Title")}</h2>
+						<p className="text-sm text-muted-foreground">{locale("QuickActions.Description")}</p>
 					</div>
 				</div>
 			</motion.div>

@@ -10,13 +10,14 @@ import SettingsPage from "@/components/settings/SettingsTabs";
 import { authClient } from "@/lib/auth-client";
 import { useConvexAuth } from "convex/react";
 import { Building2Icon, CalendarIcon, ClockIcon, HomeIcon, Loader2, SettingsIcon, UsersIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
-export type SidebarActions = "home" | "time-tracking" | "schedule" | "team" | "reports" | "settings" | "organization";
-
-const sidebarSchema = z.enum(["home", "time-tracking", "schedule", "team", "reports", "settings", "organization"]);
+const sidebarSchema = z.enum(["home", "time-tracking", "schedule", "team", "reports", "settings", "organization"])
+	.default("home");
+export type SidebarActions = z.infer<typeof sidebarSchema>;
 
 export default function DashboardPage() {
 	const { isLoading, isAuthenticated } = useConvexAuth();
@@ -25,13 +26,14 @@ export default function DashboardPage() {
 	const { data: currentOrg, isPending: isLoadingCurrentOrg, error: currentOrgError, refetch: refetchCurrentOrg } = authClient.useActiveOrganization();
 	const { data: session, refetch: refetchSession } = authClient.useSession();
 	const router = useRouter();
-	const [open, setOpen] = useState(false);
+	const [organizationCreateDialogOpen, setOrganizationCreateDialogOpen] = useState(false);
+	const locale = useTranslations("Dashboard")
 
 	const [selectedAction, setSelectedAction] = useState<SidebarActions>(() => {
 		if (typeof window === "undefined") return "home";
 		const stored = localStorage.getItem("dashboard-last-action");
 		if (stored) {
-			const parsed = sidebarSchema.default("home").safeParse(stored);
+			const parsed = sidebarSchema.safeParse(stored);
 			if (parsed.success) {
 				const lastAction = parsed.data as SidebarActions;
 				console.debug("[DashboardPage] Loaded last action from localStorage", lastAction);
@@ -62,9 +64,9 @@ export default function DashboardPage() {
 
 	useEffect(() => {
 		if (typeof window !== "undefined") {
-			const parsed = sidebarSchema.default("home").safeParse(selectedAction);
+			const parsed = sidebarSchema.safeParse(selectedAction);
 			if (parsed.success) {
-				const lastAction = parsed.data as SidebarActions;
+				const lastAction = parsed.data;
 				console.debug("[DashboardPage] Saved last action to localStorage", lastAction);
 				localStorage.setItem("dashboard-last-action", lastAction);
 			} else {
@@ -107,7 +109,7 @@ export default function DashboardPage() {
 		</div>
 	}
 
-	if (isLoadingOrgs || isLoadingCurrentOrg || userOrgs?.length === 0 || isActiveMemberPending) {
+	if (isLoadingOrgs || isLoadingCurrentOrg || userOrgs?.length === 0 || isActiveMemberPending || (!currentOrg && !currentOrgError)) {
 		return (
 			<div className="h-screen w-screen bg-background">
 				<MinimalHeader user={session?.user as any || null} organization={null} />
@@ -131,7 +133,7 @@ export default function DashboardPage() {
 	const renderContent = () => {
 		switch (selectedAction) {
 			case "home":
-				return <HomeSection currentOrg={currentOrg} session={session} router={router} activeMember={activeMember} refetchOrg={refetchCurrentOrg} />;
+				return <HomeSection currentOrg={currentOrg!} session={session} router={router} activeMember={activeMember} refetchOrg={refetchCurrentOrg} />;
 			case "time-tracking":
 				return <div className="p-4">Time Tracking Page</div>;
 			case "schedule":
@@ -170,18 +172,19 @@ export default function DashboardPage() {
 
 	return (
 		<div className="flex flex-col h-screen w-screen bg-background">
-			<CreateOrganizationDialog open={open} onClose={() => { setOpen(false) }} hasNoOrgs={userOrgs?.length === 0} />
+			<CreateOrganizationDialog open={organizationCreateDialogOpen} onClose={() => { setOrganizationCreateDialogOpen(false) }} hasNoOrgs={userOrgs?.length === 0} />
 			<MinimalHeader user={session?.user as any || null} organization={currentOrg || userOrgs?.[0] || null} />
 			<div className="flex flex-1 overflow-hidden">
 				<DashboardSidebar
 					userOrgs={userOrgs}
 					currentOrg={currentOrg}
 					session={session}
-					setOpen={setOpen}
+					setOpen={setOrganizationCreateDialogOpen}
 					selectedAction={selectedAction}
 					setSelectedAction={setSelectedAction}
 					router={router}
 					activeMember={activeMember}
+					locale={locale}
 				>
 					<div className={"pb-24 md:pb-8"}>{renderContent()}</div>
 				</DashboardSidebar>
@@ -190,12 +193,12 @@ export default function DashboardPage() {
 			< nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t bg-card/80 backdrop-blur supports-backdrop-filter:bg-card/60" >
 				<div className="grid grid-cols-5 gap-1 px-2 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)]">
 					{[
-						{ id: "home", label: "Home", icon: HomeIcon, role: null },
-						{ id: "time-tracking", label: "Time", icon: ClockIcon, role: null },
+						{ id: "home", label: locale("Sidebar.Home"), icon: HomeIcon, role: null },
+						{ id: "time-tracking", label: locale("Sidebar.Time Tracking"), icon: ClockIcon, role: null },
 						{ id: "schedule", label: "Schedule", icon: CalendarIcon, role: ["admin", "owner"] as const },
-						{ id: "organization", label: "Organization", icon: Building2Icon, role: ["admin", "owner"] as const },
-						{ id: "settings", label: "Settings", icon: SettingsIcon, role: null },
-						{ id: "team", label: "Team", icon: UsersIcon, role: ["admin", "owner"] as const },
+						{ id: "organization", label: locale("Sidebar.Organization"), icon: Building2Icon, role: ["admin", "owner"] as const },
+						{ id: "settings", label: locale("Sidebar.Settings"), icon: SettingsIcon, role: null },
+						{ id: "team", label: locale("Sidebar.Team"), icon: UsersIcon, role: ["admin", "owner"] as const },
 					]
 						.filter((item) => !item.role || item.role.includes(activeMember?.role as any))
 						.map((item) => {

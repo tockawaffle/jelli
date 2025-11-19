@@ -22,7 +22,7 @@ export type HomeSectionProps = {
 			};
 		})[];
 		invitations: Invitation[];
-	} | null,
+	},
 	session: {
 		user: User,
 		session: Session,
