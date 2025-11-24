@@ -171,12 +171,14 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             | {
                 data: {
                   clientId?: null | string;
+                  createdAt: number;
                   deviceCode: string;
                   expiresAt: number;
                   lastPolledAt?: null | number;
                   pollingInterval?: null | number;
                   scope?: null | string;
                   status: string;
+                  updatedAt: number;
                   userCode: string;
                   userId?: null | string;
                 };
@@ -534,6 +536,8 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                     | "pollingInterval"
                     | "clientId"
                     | "scope"
+                    | "createdAt"
+                    | "updatedAt"
                     | "_id";
                   operator?:
                     | "lt"
@@ -955,6 +959,8 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                     | "pollingInterval"
                     | "clientId"
                     | "scope"
+                    | "createdAt"
+                    | "updatedAt"
                     | "_id";
                   operator?:
                     | "lt"
@@ -1574,12 +1580,14 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                 model: "deviceCode";
                 update: {
                   clientId?: null | string;
+                  createdAt?: number;
                   deviceCode?: string;
                   expiresAt?: number;
                   lastPolledAt?: null | number;
                   pollingInterval?: null | number;
                   scope?: null | string;
                   status?: string;
+                  updatedAt?: number;
                   userCode?: string;
                   userId?: null | string;
                 };
@@ -1595,6 +1603,8 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                     | "pollingInterval"
                     | "clientId"
                     | "scope"
+                    | "createdAt"
+                    | "updatedAt"
                     | "_id";
                   operator?:
                     | "lt"
@@ -2152,12 +2162,14 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                 model: "deviceCode";
                 update: {
                   clientId?: null | string;
+                  createdAt?: number;
                   deviceCode?: string;
                   expiresAt?: number;
                   lastPolledAt?: null | number;
                   pollingInterval?: null | number;
                   scope?: null | string;
                   status?: string;
+                  updatedAt?: number;
                   userCode?: string;
                   userId?: null | string;
                 };
@@ -2173,6 +2185,8 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                     | "pollingInterval"
                     | "clientId"
                     | "scope"
+                    | "createdAt"
+                    | "updatedAt"
                     | "_id";
                   operator?:
                     | "lt"

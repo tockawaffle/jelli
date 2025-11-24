@@ -19,12 +19,14 @@ export default function QuickActions({ userData, orgData, attendance, refetchOrg
 
 	const actions = [
 		{
+			id: "clock-in-out",
 			label: locale("QuickActions.ClockInOut"),
 			description: locale("QuickActions.ClockInOutDescription"),
 			icon: Clock,
 			roles: [],
 		},
 		{
+			id: "request-time-off",
 			label: locale("QuickActions.RequestTimeOff"),
 			description: locale("QuickActions.RequestTimeOffDescription"),
 			icon: Calendar,
@@ -32,12 +34,14 @@ export default function QuickActions({ userData, orgData, attendance, refetchOrg
 		},
 		/** @description This action creates a specific report for the user's organization. If the user is an admin or owner, they can generate a report for the entire organization. If the user is a member, they can generate a report of their own data.*/
 		{
+			id: "generate-report",
 			label: locale("QuickActions.GenerateReport"),
 			description: locale("QuickActions.GenerateReportDescription"),
 			roles: [],
 			icon: FileText,
 		},
 		{
+			id: "manage-team",
 			label: locale("QuickActions.ManageTeam"),
 			description: locale("QuickActions.ManageTeamDescription"),
 			roles: ["admin", "owner"],
@@ -83,7 +87,7 @@ export default function QuickActions({ userData, orgData, attendance, refetchOrg
 						const isDisabled = action.roles.length > 0 && !action.roles.includes(userData.role);
 						return (
 							<motion.button
-								key={action.label}
+								key={action.id}
 								className={`group relative flex flex-col items-center justify-center gap-3 p-4 min-h-[120px] rounded-xl border transition-all duration-200 ${isDisabled
 									? "bg-muted/30 border-border/30 opacity-50 cursor-not-allowed"
 									: "bg-background/50 border-border/50 hover:bg-background hover:border-primary/30 hover:shadow-md hover:shadow-primary/5"
@@ -97,18 +101,21 @@ export default function QuickActions({ userData, orgData, attendance, refetchOrg
 								style={{ zIndex: 1 }}
 								onClick={() => {
 									if (isDisabled) return;
-									switch (action.label) {
-										case "Clock In/Out":
+									switch (action.id) {
+										case "clock-in-out":
 											setClockModalOpen(true);
 											break;
-										case "Request Time Off":
+										case "request-time-off":
 											setTimeOffOpen(true);
 											break;
-										case "Generate Report":
+										case "generate-report":
 											setReportOpen(true);
 											break;
-										case "Manage Team":
+										case "manage-team":
 											setTeamOpen(true);
+											break;
+										default:
+											console.error(`Unknown action: ${action.id}`);
 											break;
 									}
 								}}
@@ -144,7 +151,7 @@ export default function QuickActions({ userData, orgData, attendance, refetchOrg
 								{!isDisabled && (
 									<motion.div
 										className="absolute inset-0 rounded-xl bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"
-										layoutId={`quick-action-${action.label}`}
+										layoutId={`quick-action-${action.id}`}
 									/>
 								)}
 							</motion.button>

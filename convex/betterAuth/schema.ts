@@ -160,7 +160,13 @@ export const tables = {
 		pollingInterval: v.optional(v.union(v.null(), v.number())),
 		clientId: v.optional(v.union(v.null(), v.string())),
 		scope: v.optional(v.union(v.null(), v.string())),
-	}),
+		createdAt: v.number(),
+		updatedAt: v.number(),
+	})
+		.index("deviceCode_userCode", ["deviceCode", "userCode"])
+		.index("deviceCode_userId", ["deviceCode", "userId"])
+		.index("expiresAt", ["expiresAt"])
+		.index("status", ["status"]),
 	auditLogs: defineTable({
 		userId: v.string(),
 		action: v.string(),

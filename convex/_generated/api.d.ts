@@ -222,12 +222,14 @@ export declare const components: {
             | {
                 data: {
                   clientId?: null | string;
+                  createdAt: number;
                   deviceCode: string;
                   expiresAt: number;
                   lastPolledAt?: null | number;
                   pollingInterval?: null | number;
                   scope?: null | string;
                   status: string;
+                  updatedAt: number;
                   userCode: string;
                   userId?: null | string;
                 };
@@ -584,6 +586,8 @@ export declare const components: {
                     | "pollingInterval"
                     | "clientId"
                     | "scope"
+                    | "createdAt"
+                    | "updatedAt"
                     | "_id";
                   operator?:
                     | "lt"
@@ -1004,6 +1008,8 @@ export declare const components: {
                     | "pollingInterval"
                     | "clientId"
                     | "scope"
+                    | "createdAt"
+                    | "updatedAt"
                     | "_id";
                   operator?:
                     | "lt"
@@ -1620,12 +1626,14 @@ export declare const components: {
                 model: "deviceCode";
                 update: {
                   clientId?: null | string;
+                  createdAt?: number;
                   deviceCode?: string;
                   expiresAt?: number;
                   lastPolledAt?: null | number;
                   pollingInterval?: null | number;
                   scope?: null | string;
                   status?: string;
+                  updatedAt?: number;
                   userCode?: string;
                   userId?: null | string;
                 };
@@ -1641,6 +1649,8 @@ export declare const components: {
                     | "pollingInterval"
                     | "clientId"
                     | "scope"
+                    | "createdAt"
+                    | "updatedAt"
                     | "_id";
                   operator?:
                     | "lt"
@@ -2197,12 +2207,14 @@ export declare const components: {
                 model: "deviceCode";
                 update: {
                   clientId?: null | string;
+                  createdAt?: number;
                   deviceCode?: string;
                   expiresAt?: number;
                   lastPolledAt?: null | number;
                   pollingInterval?: null | number;
                   scope?: null | string;
                   status?: string;
+                  updatedAt?: number;
                   userCode?: string;
                   userId?: null | string;
                 };
@@ -2218,6 +2230,8 @@ export declare const components: {
                     | "pollingInterval"
                     | "clientId"
                     | "scope"
+                    | "createdAt"
+                    | "updatedAt"
                     | "_id";
                   operator?:
                     | "lt"

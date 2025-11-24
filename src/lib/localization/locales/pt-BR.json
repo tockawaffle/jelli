@@ -86,7 +86,101 @@
 			"GenerateReport": "Gerar Relatório",
 			"GenerateReportDescription": "Relatório de horas",
 			"ManageTeam": "Gerenciar Equipe",
-			"ManageTeamDescription": "Adicionar ou editar membros da equipe"
+			"ManageTeamDescription": "Adicionar ou editar membros da equipe",
+			"Actions": {
+				"ClockInOut": {
+					"Title": "Registrar Ponto",
+					"Description": "Escolha o método de registro de ponto.",
+					"DeviceLinking": {
+						"Title": "Ligação de Dispositivo Disponível",
+						"Description": "Administradores da organização podem vincular dispositivos físicos específicos para controle de ponto em um clique."
+					},
+					"SelectMethod": "Selecione o método",
+					"SubmitRequest": "Enviar Solicitação",
+					"CancelRequest": "Cancelar",
+					"ScanQRCode": "Escanear QR Code",
+					"ReadyForNFC": "Pronto para NFC",
+					"Options": {
+						"QRCode": {
+							"Title": "QR Code",
+							"Description": "Escaneie o QR Code para registrar o ponto"
+						},
+						"NFC": {
+							"Title": "NFC",
+							"Description": "Toque o NFC para registrar o ponto",
+							"HowToLink": {
+								"Title": "Como vincular um dispositivo NFC",
+								"Description1": "Você pode vincular um dispositivo NFC baixando o aplicativo NFC e criando uma chave de API nas ",
+								"Description2": "Uma vez vinculado, todos os membros da organização podem tocar em um leitor NFC cadastrado para registrar o ponto.",
+								"OrganizationSettings": "configurações da organização",
+								"NoLinkedDevices": "Não há dispositivos NFC vinculados a esta organização. Peça a um administrador para vincular um dispositivo."
+							}
+						},
+						"Manual": {
+							"Title": "Manual",
+							"Description": "Registre o ponto manualmente",
+							"Now": "Agora: {time} — Hoje ({date})",
+							"TodayOnly": "Batimento de ponto limitado a hoje apenas.",
+							"ClockMethod": {
+								"Title": "Qual o ponto que você irá bater?",
+								"ClockIn": "Ponto de Entrada",
+								"LunchStart": "Iniciar Almoço",
+								"LunchEnd": "Retornar do Almoço",
+								"ClockOut": "Ponto de Saída"
+							},
+							"Recommended": {
+								"Title": "Recomendado",
+								"Reasons": {
+									"NoRecord": "Não registramos nenhum ponto hoje.",
+									"AlreadyClockedIn": "Você já bateu o ponto hoje.",
+									"NotClockedIn": "Você ainda não bateu o ponto hoje.",
+									"CurrentClockIn": "Você está trabalhando desde as {time}.",
+									"NotClockedInError": "Você não está trabalhando.",
+									"LunchStarted": "Seu almoço começou às {time}.",
+									"LunchNotStarted": "Você não iniciou o almoço.",
+									"ReadyToClockOut": "Você pode bater o ponto de saída.",
+									"ClockOutError": "Você deve ter batido o ponto de entrada (e idealmente ter voltado do almoço).",
+									"Default": "Contexto de hoje"
+								},
+								"Location": {
+									"Required": "A localização é obrigatória. Se negada, use a função para criar uma solicitação.",
+									"GrantAccess": "Conceder acesso",
+									"Checking": "Verificando…",
+									"Granted": "Acesso concedido",
+									"Denied": "Acesso negado",
+									"Error": "Erro",
+									"TryAgain": "Tentar novamente"
+								},
+								"Messages": {
+									"Success": {
+										"ClockIn": "Ponto de entrada registrado com sucesso.",
+										"LunchStart": "Almoço iniciado com sucesso.",
+										"LunchEnd": "Almoço encerrado com sucesso.",
+										"ClockOut": "Ponto de saída registrado com sucesso."
+									},
+									"Error": {
+										"ClockIn": "Erro ao registrar o ponto de entrada. Por favor, tente novamente.",
+										"LunchStart": "Erro ao iniciar o almoço. Por favor, tente novamente.",
+										"LunchStartOutOfTime": "Você não pode iniciar o almoço após o período de tolerância. Por favor crie uma solicitação para iniciar o almoço.",
+										"ClockOut": "Erro ao registrar o ponto de saída. Por favor, tente novamente.",
+										"LunchEnd": "Erro ao encerrar o almoço. Por favor, tente novamente.",
+										"LunchReturnAfterTime": "Você não pode retornar do almoço após o período de tolerância. Por favor crie uma solicitação para retornar do almoço.",
+										"LunchReturnBeforeTime": "Você não pode retornar do almoço antes do período de tolerância. Por favor crie uma solicitação para retornar do almoço."
+									}
+								}
+							}
+						}
+					},
+					"Alerts": {
+						"ClockOutAfterGracePeriod": "O período de tolerância para registro de saída terminou. Crie uma solicitação para registrar a saída.",
+						"ClockOutBeforeGracePeriod": "Tem certeza de que deseja bater o ponto de saída mais cedo? Esta ação é irreversível e será registrada como saída antecipada. Para corrigir isso, crie uma solicitação."
+					}
+				},
+				"RequestTimeOff": {
+					"Title": "Solicitar Folga",
+					"Description": "Solicitação de folga"
+				}
+			}
 		}
 	}
 }

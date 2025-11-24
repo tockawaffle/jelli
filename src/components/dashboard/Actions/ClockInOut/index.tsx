@@ -10,6 +10,7 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { motion } from "framer-motion";
 import { AlertCircle, AlertTriangle, CheckCircle2, Clock, FileTextIcon, MapPin, QrCode, Settings, SmartphoneNfc } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { METHOD_OPTIONS } from "./constants";
@@ -30,9 +31,11 @@ export default function ClockInOutDialog({
 	attendance
 }: ControlledProps) {
 	const [method, setMethod] = useState<ClockInOutMethod>("request");
-	const [requestType, setRequestType] = useState<RequestType>("clock-in");
+	const [requestType, setRequestType] = useState<RequestType>("ClockIn");
 	const { data: activeOrg } = authClient.useActiveOrganization();
 
+	const locale = useTranslations("DashboardHome.QuickActions.Actions.ClockInOut");
+	const manualRequestLocale = useTranslations("DashboardHome.QuickActions.Actions.ClockInOut.Options.Manual");
 	const orgMetadata: OrgMetadata = typeof activeOrg?.metadata === "string" ? JSON.parse(activeOrg?.metadata) : activeOrg?.metadata;
 
 	const ClockData = useMemo(() => {
@@ -87,9 +90,9 @@ export default function ClockInOutDialog({
 								<Clock className="h-5 w-5 text-primary" />
 							</div>
 							<div>
-								<DialogTitle className="text-xl">Clock In / Clock Out</DialogTitle>
+								<DialogTitle className="text-xl">{locale("Title")}</DialogTitle>
 								<DialogDescription className="text-base">
-									Choose your preferred method to record time
+									{locale("Description")}
 								</DialogDescription>
 							</div>
 						</div>
@@ -108,7 +111,7 @@ export default function ClockInOutDialog({
 							</motion.div>
 						)}
 						{
-							requestType === "clock-out" && ClockData.isAfter && (
+							requestType === "ClockOut" && ClockData.isAfter && (
 								<motion.div
 									className="bg-warning/10 border border-warning/20 text-warning p-4 rounded-lg text-sm flex items-center gap-2"
 									initial={{ opacity: 0, y: -10 }}
@@ -117,12 +120,12 @@ export default function ClockInOutDialog({
 									aria-live="polite"
 								>
 									<AlertTriangle className="h-4 w-4 shrink-0" />
-									The grace period for clocking out has ended. Create a request instead to clock out.
+									{locale("Alerts.ClockOutAfterGracePeriod")}
 								</motion.div>
 							)
 						}
 						{
-							requestType === "clock-out" && ClockData.isBefore && (
+							requestType === "ClockOut" && ClockData.isBefore && (
 								<motion.div
 									className="bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-lg text-sm flex items-center gap-2"
 									initial={{ opacity: 0, y: -10 }}
@@ -131,7 +134,7 @@ export default function ClockInOutDialog({
 									aria-live="polite"
 								>
 									<AlertTriangle className="h-4 w-4 shrink-0" />
-									Are you sure you want to clock out early? This action is irreversible and will be recorded as an early out. To correct this, create a request to clock out.
+									{locale("Alerts.ClockOutBeforeGracePeriod")}
 								</motion.div>
 							)
 						}
@@ -143,7 +146,7 @@ export default function ClockInOutDialog({
 							transition={{ duration: 0.4, delay: 0.1 }}
 						>
 							<div className="space-y-2">
-								<h3 className="text-sm font-medium text-foreground">Select Method</h3>
+								<h3 className="text-sm font-medium text-foreground">{locale("SelectMethod")}</h3>
 								<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
 									{METHOD_OPTIONS.map((option, index) => {
 										const Icon = option.icon;
@@ -170,8 +173,8 @@ export default function ClockInOutDialog({
 														<Icon className="h-6 w-6" />
 													</div>
 													<div>
-														<h4 className="font-medium text-sm">{option.title}</h4>
-														<p className="text-xs text-muted-foreground mt-1">{option.description}</p>
+														<h4 className="font-medium text-sm">{locale(`Options.${option.id === "request" ? "Manual" : option.id === "nfc" ? "NFC" : "QRCode"}.Title`)}</h4>
+														<p className="text-xs text-muted-foreground mt-1">{locale(`Options.${option.id === "request" ? "Manual" : option.id === "nfc" ? "NFC" : "QRCode"}.Description`)}</p>
 													</div>
 												</div>
 												{isSelected && (
@@ -197,9 +200,9 @@ export default function ClockInOutDialog({
 								<div className="flex items-start gap-3">
 									<Settings className="h-4 w-4 text-accent mt-0.5 shrink-0" />
 									<div className="text-sm">
-										<p className="font-medium text-foreground">Device Linking Available</p>
+										<p className="font-medium text-foreground">{locale("DeviceLinking.Title")}</p>
 										<p className="text-muted-foreground text-xs mt-1">
-											Organization admins can link physical devices for one-click time tracking from specific computers.
+											{locale("DeviceLinking.Description")}
 										</p>
 									</div>
 								</div>
@@ -214,36 +217,50 @@ export default function ClockInOutDialog({
 							{method === "request" && (
 								<div className="bg-card/50 border border-border/50 rounded-xl p-4 space-y-4">
 									<div className="flex flex-wrap items-center gap-2">
-										<span className="font-medium">Recommended:</span>
+										<span className="font-medium">
+											{manualRequestLocale("Recommended.Title")}:
+										</span>
 										<Badge variant="secondary">
 											{
-												requestType.replaceAll("-", " ").charAt(0).toUpperCase() + requestType.replaceAll("-", " ").slice(1)
+												manualRequestLocale(`ClockMethod.${requestType}`)
 											}
 										</Badge>
-										<span className="text-xs text-muted-foreground">— {getRecommendationReason(attendance[0], requestType, ClockData.now, orgMetadata)}</span>
+										<span className="text-xs text-muted-foreground">— {getRecommendationReason(attendance[0], requestType, ClockData.now, orgMetadata, locale)}</span>
 									</div>
-									<div className="text-xs text-muted-foreground">Now: {dayjs().format("h:mm A")} — Today ({dayjs().format("ddd, MMM D")})</div>
+									<div className="text-xs text-muted-foreground">
+										{manualRequestLocale("Now", { time: ClockData.now.format("h:mm"), date: ClockData.now.format("DD/MM/YYYY") })}
+									</div>
 									<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
 										<span className="flex items-center gap-1 text-destructive">
-											<MapPin className="size-3" /> Location is required. If denied, use Request Time Off.
+											<MapPin className="size-3" /> {manualRequestLocale("Recommended.Location.Required")}
 										</span>
 										<Button size="sm" variant="secondary" onClick={requestLocationPermission} disabled={locationStatus === "checking"}
 											className="self-start sm:self-auto">
-											{locationStatus === "checking" ? "Checking…" : locationStatus === "granted" ? (
-												<span className="inline-flex items-center gap-1"><CheckCircle2 className="size-3" /> Permission granted</span>
-											) : locationStatus === "denied" ? "Grant access" : locationStatus === "error" ? "Try again" : "Grant access"}
+											{locationStatus === "checking" ? manualRequestLocale("Recommended.Location.Checking") : locationStatus === "granted" ? (
+												<span className="inline-flex items-center gap-1"><CheckCircle2 className="size-3" /> {manualRequestLocale("Recommended.Location.Granted")}</span>
+											) : locationStatus === "denied" ? manualRequestLocale("Recommended.Location.GrantAccess") : locationStatus === "error" ? manualRequestLocale("Recommended.Location.TryAgain") : manualRequestLocale("Recommended.Location.GrantAccess")}
 										</Button>
 									</div>
 
 									<div className="grid gap-2">
-										<Label>What are you requesting?</Label>
+										<Label>
+											{manualRequestLocale("ClockMethod.Title")}
+										</Label>
 										<ToggleGroup type="single" value={requestType} onValueChange={(v) => v && setRequestType(v as RequestType)} className="w-full" variant="outline">
-											<ToggleGroupItem value="clock-in" className="text-xs" disabled={disabledMap["clock-in"]}>Clock In</ToggleGroupItem>
-											<ToggleGroupItem value="lunch-break-start" className="text-xs" disabled={disabledMap["lunch-break-start"]}>Lunch Out</ToggleGroupItem>
-											<ToggleGroupItem value="lunch-break-end" className="text-xs" disabled={disabledMap["lunch-break-end"]}>Lunch In</ToggleGroupItem>
-											<ToggleGroupItem value="clock-out" className="text-xs" disabled={disabledMap["clock-out"]}>Clock Out</ToggleGroupItem>
+											<ToggleGroupItem value="ClockIn" className="text-xs" disabled={disabledMap["ClockIn"]}>
+												{manualRequestLocale("ClockMethod.ClockIn")}
+											</ToggleGroupItem>
+											<ToggleGroupItem value="LunchStart" className="text-xs" disabled={disabledMap["LunchStart"]}>
+												{manualRequestLocale("ClockMethod.LunchStart")}
+											</ToggleGroupItem>
+											<ToggleGroupItem value="LunchEnd" className="text-xs" disabled={disabledMap["LunchEnd"]}>
+												{manualRequestLocale("ClockMethod.LunchEnd")}
+											</ToggleGroupItem>
+											<ToggleGroupItem value="ClockOut" className="text-xs" disabled={disabledMap["ClockOut"]}>
+												{manualRequestLocale("ClockMethod.ClockOut")}
+											</ToggleGroupItem>
 										</ToggleGroup>
-										<p className="text-[12px] text-muted-foreground">Requests here are limited to today only</p>
+										<p className="text-[12px] text-muted-foreground">{manualRequestLocale("TodayOnly")}</p>
 									</div>
 								</div>
 							)}
@@ -255,18 +272,18 @@ export default function ClockInOutDialog({
 											<div className="space-y-2">
 												<h3 className="text-sm font-medium">How to link a NFC device</h3>
 												<p className="text-xs text-muted-foreground">
-													You can link a physical NFC device by downloading the NFC app and creating an API key in the{" "}
+													{locale("Options.NFC.HowToLink.Description1")}
 													<button
 														onClick={() => {
 															localStorage.setItem("dashboard-last-action", "settings");
 															window.dispatchEvent(new Event("storage-last-action"));
 															onOpenChange(false);
 														}}
-														className="text-primary underline"
+														className="text-primary underline hover:cursor-pointer"
 													>
-														organization settings
+														{locale("Options.NFC.HowToLink.OrganizationSettings")}
 													</button>.
-													Once linked, all users in the organization can tap a NFC tag to clock in/out.
+													{locale("Options.NFC.HowToLink.Description2")}
 												</p>
 											</div>
 										) : (
@@ -284,7 +301,7 @@ export default function ClockInOutDialog({
 												<span className="px-2 py-0.5 rounded-md bg-accent-foreground text-foreground text-xs">
 													{requestType.replaceAll("-", " ")}
 												</span>
-												<span className="text-xs text-muted-foreground">— {getRecommendationReason(attendance[0], requestType, ClockData.now, orgMetadata)}</span>
+												<span className="text-xs text-muted-foreground">— {getRecommendationReason(attendance[0], requestType, ClockData.now, orgMetadata, locale)}</span>
 											</div>
 										</div>
 									)}
@@ -306,7 +323,7 @@ export default function ClockInOutDialog({
 					</div>
 					<DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-6">
 						<Button variant="outline" onClick={() => onOpenChange(false)}>
-							Cancel
+							{locale("CancelRequest")}
 						</Button>
 						{method === "request" && (
 							<Button
@@ -355,32 +372,34 @@ export default function ClockInOutDialog({
 									}
 
 									switch (requestType) {
-										case "clock-in": {
+										case "ClockIn": {
 											authClient.attendance.clockIn({}, {
 												onSuccess: () => {
-													toast.success("Clocked in successfully");
+													toast.success(manualRequestLocale("Messages.Success.ClockIn"));
 													onOpenChange(false);
 												},
 												onError: (error) => {
-													toast.error("Failed to clock-in. Please try again.");
+													console.debug("[ClockInOutDialog] Clock in error: ", error);
+													toast.error(manualRequestLocale("Messages.Error.ClockIn"));
 													console.error(error);
 												}
 											});
 											break;
 										}
-										case "lunch-break-start": {
+										case "LunchStart": {
 											authClient.attendance.lunchStart({}, {
 												onSuccess: () => {
-													toast.success("Lunch break started successfully");
+													toast.success(manualRequestLocale("Messages.Success.LunchStart"));
 													onOpenChange(false);
 												},
 												onError: ({ error }) => {
+													console.debug("[ClockInOutDialog] Lunch start error: ", error);
 													if (error.code === "CLOCK_LS_OUT_OF_TIME") {
-														toast.error(error.message || "You cannot start lunch break after the grace period. Please try again.");
+														toast.error(error.message || manualRequestLocale("Messages.Error.LunchStartOutOfTime"));
 														console.error(error);
 														return;
 													} else {
-														toast.error(error.message || "Failed to start lunch break. Please try again.");
+														toast.error(error.message || manualRequestLocale("Messages.Error.LunchStart"));
 														console.error(error);
 														return;
 													}
@@ -388,19 +407,20 @@ export default function ClockInOutDialog({
 											});
 											break;
 										}
-										case "lunch-break-end": {
+										case "LunchEnd": {
 											authClient.attendance.lunchReturn({}, {
 												onSuccess: () => {
-													toast.success("Welcome back from lunch! Hope it was refreshing.");
+													toast.success(manualRequestLocale("Messages.Success.LunchEnd"));
 													onOpenChange(false);
 												},
 												onError: ({ error }) => {
+													console.debug("[ClockInOutDialog] Lunch return error: ", error);
 													if (error.code === "CLOCK_LR_AFTER_TIME") {
-														toast.error(error.message || "You cannot return from lunch break after the grace period. Please try again.");
+														toast.error(error.message || manualRequestLocale("Messages.Error.LunchReturnAfterTime"));
 													} else if (error.code === "CLOCK_LR_BEFORE_TIME") {
-														toast.error(error.message || "You cannot return from lunch break before the grace period. Please try again.");
+														toast.error(error.message || manualRequestLocale("Messages.Error.LunchReturnBeforeTime"));
 													} else {
-														toast.error(error.message || "Failed to end lunch break. Please try again.");
+														toast.error(error.message || manualRequestLocale("Messages.Error.LunchEnd"));
 													}
 												}
 											});
@@ -410,19 +430,19 @@ export default function ClockInOutDialog({
 								}}
 							>
 								<FileTextIcon className="h-4 w-4" />
-								Submit Request
+								{locale("SubmitRequest")}
 							</Button>
 						)}
 						{method === "qr" && hasRegisteredDevice && (
 							<Button className="gap-2">
 								<QrCode className="h-4 w-4" />
-								Scan QR Code
+								{locale("ScanQRCode")}
 							</Button>
 						)}
 						{method === "nfc" && (
 							<Button className="gap-2" disabled={!hasRegisteredDevice}>
 								<SmartphoneNfc className="h-4 w-4" />
-								Ready for NFC
+								{locale("ReadyForNFC")}
 							</Button>
 						)}
 					</DialogFooter>

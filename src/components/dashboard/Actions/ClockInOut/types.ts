@@ -2,11 +2,11 @@ import type { Attendance } from "@/lib/helpers/plugins/server/attendance";
 export type ClockInOutMethod = "qr" | "request" | "nfc";
 
 export type RequestType =
-	| "clock-in"
-	| "clock-out"
-	| "lunch-break-start"
-	| "lunch-break-end"
-	| "time-off";
+	| "ClockIn"
+	| "ClockOut"
+	| "LunchStart"
+	| "LunchEnd"
+	| "TimeOff";
 
 export type LocationStatus = "idle" | "checking" | "granted" | "denied" | "error";
 

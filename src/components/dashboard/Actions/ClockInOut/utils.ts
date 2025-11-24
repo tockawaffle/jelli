@@ -50,50 +50,51 @@ import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
+import { useTranslations } from "next-intl";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(duration);
 
-export function getRecommendationReason(row: Omit<Attendance, "_id">, type: RequestType, now: dayjs.Dayjs, orgMetadata: OrgMetadata): string {
-	if (!row) return "we haven't recorded any clock-in for today.";
+export function getRecommendationReason(row: Omit<Attendance, "_id">, type: RequestType, now: dayjs.Dayjs, orgMetadata: OrgMetadata, locale: ReturnType<typeof useTranslations<"DashboardHome.QuickActions.Actions.ClockInOut">>): string {
+	if (!row) return locale("Options.Manual.Recommended.Reasons.NoRecord");
 	switch (type) {
-		case "clock-in":
-			return row.clockIn ? "you already clocked in earlier today." : "you haven't clocked in yet today.";
-		case "lunch-break-start":
-			return row.status === "CLOCKED_IN" ? `you are currently clocked in since ${dayjs(row.clockIn).tz(orgMetadata.hours.timezone).format("h:mm A")}.` : "you're not clocked in.";
-		case "lunch-break-end":
-			return row.status === "LUNCH_BREAK_STARTED" ? `your lunch started at ${dayjs(row.lunchBreakOut).tz(orgMetadata.hours.timezone).format("h:mm A")}.` : "you haven't started lunch.";
-		case "clock-out":
-			return row.status === "LUNCH_BREAK_ENDED" || row.status === "CLOCKED_IN" ? "you're in a valid state to clock out." : "you must be clocked in (and ideally have ended lunch).";
+		case "ClockIn":
+			return row.clockIn ? locale("Options.Manual.Recommended.Reasons.AlreadyClockedIn") : locale("Options.Manual.Recommended.Reasons.NotClockedIn");
+		case "LunchStart":
+			return row.status === "CLOCKED_IN" ? locale("Options.Manual.Recommended.Reasons.CurrentClockIn", { time: dayjs(row.clockIn).tz(orgMetadata.hours.timezone).format("h:mm A") }) : locale("Options.Manual.Recommended.Reasons.NotClockedIn");
+		case "LunchEnd":
+			return row.status === "LUNCH_BREAK_STARTED" ? locale("Options.Manual.Recommended.Reasons.LunchStarted", { time: dayjs(row.lunchBreakOut).tz(orgMetadata.hours.timezone).format("h:mm A") }) : locale("Options.Manual.Recommended.Reasons.LunchNotStarted");
+		case "ClockOut":
+			return row.status === "LUNCH_BREAK_ENDED" || row.status === "CLOCKED_IN" ? locale("Options.Manual.Recommended.Reasons.ReadyToClockOut") : locale("Options.Manual.Recommended.Reasons.ClockOutError");
 		default:
-			return "today's context";
+			return locale("Options.Manual.Recommended.Reasons.Default");
 	}
 }
 
 export function getRecommendedType(row: Omit<Attendance, "_id">): RequestType {
-	if (!row) return "clock-in";
+	if (!row) return "ClockIn";
 	switch (row.status) {
 		case "TBR":
-			return row.clockIn ? "lunch-break-start" : "clock-in";
+			return row.clockIn ? "LunchStart" : "ClockIn";
 		case "CLOCKED_IN":
-			return row.lunchBreakOut ? "clock-out" : "lunch-break-start";
+			return row.lunchBreakOut ? "ClockOut" : "LunchStart";
 		case "LUNCH_BREAK_STARTED":
-			return "lunch-break-end";
+			return "LunchEnd";
 		case "LUNCH_BREAK_ENDED":
-			return row.clockOut ? "clock-in" : "clock-out";
+			return row.clockOut ? "ClockIn" : "ClockOut";
 		case "CLOCKED_OUT":
 		default:
-			return "clock-in";
+			return "ClockIn";
 	}
 }
 
 export function getDisabledMap(status: string): Record<RequestType, boolean> {
 	return {
-		"clock-in": ["CLOCKED_IN", "LUNCH_BREAK_STARTED", "LUNCH_BREAK_ENDED"].includes(status),
-		"lunch-break-start": status !== "CLOCKED_IN",
-		"lunch-break-end": status !== "LUNCH_BREAK_STARTED",
-		"clock-out": !["CLOCKED_IN", "LUNCH_BREAK_ENDED"].includes(status),
-		"time-off": false,
+		"ClockIn": ["CLOCKED_IN", "LUNCH_BREAK_STARTED", "LUNCH_BREAK_ENDED"].includes(status),
+		"LunchStart": status !== "CLOCKED_IN",
+		"LunchEnd": status !== "LUNCH_BREAK_STARTED",
+		"ClockOut": !["CLOCKED_IN", "LUNCH_BREAK_ENDED"].includes(status),
+		"TimeOff": false,
 	};
 }
 

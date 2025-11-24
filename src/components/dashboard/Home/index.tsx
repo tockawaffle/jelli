@@ -13,8 +13,6 @@ import { useAttendanceData } from "./hooks";
 import { HomeSectionProps } from "./types";
 import { calculateStats, getGreeting, getUserName } from "./utils";
 
-// FullOrganization type is defined in globals.d.ts
-
 export default function HomeSection({ currentOrg, session, activeMember, refetchOrg }: HomeSectionProps) {
 	const locale = useTranslations("DashboardHome");
 	if (!session) return null;
